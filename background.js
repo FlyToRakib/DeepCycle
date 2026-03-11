@@ -16,7 +16,7 @@ let pausedRemainingMs = null;
 
 // load settings & paused info
 chrome.storage.sync.get(
-  ["interval","mode","enabled","pomodoroWork","pomodoroBreak","streakCount","pausedRemainingMs","totalReminders","breaksTaken"],
+  ["interval", "mode", "enabled", "pomodoroWork", "pomodoroBreak", "streakCount", "pausedRemainingMs", "totalReminders", "breaksTaken"],
   data => {
     if (data.interval) reminderInterval = data.interval;
     if (data.mode) reminderMode = data.mode;
@@ -28,10 +28,13 @@ chrome.storage.sync.get(
     if (data.totalReminders === undefined) chrome.storage.sync.set({ totalReminders: 0 });
     if (data.breaksTaken === undefined) chrome.storage.sync.set({ breaksTaken: 0 });
 
-    // If not paused, schedule initial alarm
-    if (!pausedRemainingMs) {
-      setAlarm(reminderMode === "pomodoro" ? pomodoroWork : reminderInterval);
-    }
+    // FIX: Check if alarm already exists before setting a new one
+    // This prevents the timer from resetting to full on service worker restart
+    chrome.alarms.get("breakReminder", (alarm) => {
+      if (!alarm && !pausedRemainingMs) {
+        setAlarm(reminderMode === "pomodoro" ? pomodoroWork : reminderInterval);
+      }
+    });
   }
 );
 
@@ -45,6 +48,8 @@ fetch(chrome.runtime.getURL("tips.json"))
 function showNotification(message) {
   if (!notificationsEnabled) return;
   const tip = tips.length ? tips[Math.floor(Math.random() * tips.length)] : "";
+  
+  // 1. Standard Desktop Notification
   chrome.notifications.create({
     type: "basic",
     iconUrl: "icons/icon128.png",
@@ -52,6 +57,19 @@ function showNotification(message) {
     message: `${message} ${tip}`,
     priority: 2,
     buttons: [{ title: "Snooze 5 min" }]
+  });
+
+  // 2. In-Page Overlays & Toasts
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]) {
+      if (reminderMode === "pomodoro" && !isWorkPhase) {
+        // Just finished work, about to start break -> Show Overlay
+        chrome.tabs.sendMessage(tabs[0].id, { action: "showOverlay", message, tip });
+      } else {
+        // Regular interval or break finished -> Show Toast
+        chrome.tabs.sendMessage(tabs[0].id, { action: "showToast", message: `${message} ${tip}` });
+      }
+    }
   });
 
   chrome.storage.sync.get(["totalReminders","breaksTaken"], data => {
@@ -74,6 +92,8 @@ function setAlarm(minutes) {
       // one-time and pomodoro: single-delay alarm
       chrome.alarms.create("breakReminder", { delayInMinutes: minutes });
     }
+    // Update last start time to allow UI progress tracking
+    chrome.storage.local.set({ lastAlarmScheduledTime: Date.now(), lastAlarmDurationMin: minutes });
   });
 }
 
@@ -133,6 +153,11 @@ chrome.alarms.onAlarm.addListener(alarm => {
         setAlarm(pomodoroBreak);
         isWorkPhase = false;
       } else {
+        // Break finished, hide overlay if active
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "hideOverlay" });
+        });
+
         showNotification("Break finished! Start next Pomodoro.");
         streakCount++;
         chrome.storage.sync.set({ streakCount: streakCount });

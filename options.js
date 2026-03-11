@@ -1,5 +1,4 @@
-// options.js - show/hide fields, persist settings and notify background
-
+// options.js - Modern Settings Logic
 const modeSelect = document.getElementById("mode");
 const intervalInput = document.getElementById("interval");
 const pomodoroWorkInput = document.getElementById("pomodoroWork");
@@ -8,9 +7,10 @@ const enabledCheckbox = document.getElementById("enabled");
 const saveBtn = document.getElementById("saveBtn");
 const statusEl = document.getElementById("status");
 
-const intervalDiv = document.getElementById("intervalDiv");
-const pomodoroDiv = document.getElementById("pomodoroDiv");
+const intervalCard = document.getElementById("intervalCard");
+const pomodoroCard = document.getElementById("pomodoroCard");
 
+// Load current settings
 chrome.storage.sync.get(["mode","interval","pomodoroWork","pomodoroBreak","enabled"], data => {
   modeSelect.value = data.mode || "interval";
   intervalInput.value = (data.interval !== undefined) ? data.interval : 15;
@@ -22,13 +22,14 @@ chrome.storage.sync.get(["mode","interval","pomodoroWork","pomodoroBreak","enabl
 
 function toggleFields() {
   if (modeSelect.value === "pomodoro") {
-    intervalDiv.style.display = "none";
-    pomodoroDiv.style.display = "block";
+    intervalCard.classList.add("hidden");
+    pomodoroCard.classList.remove("hidden");
   } else {
-    intervalDiv.style.display = "block";
-    pomodoroDiv.style.display = "none";
+    intervalCard.classList.remove("hidden");
+    pomodoroCard.classList.add("hidden");
   }
 }
+
 modeSelect.addEventListener("change", toggleFields);
 
 saveBtn.addEventListener("click", () => {
@@ -38,7 +39,6 @@ saveBtn.addEventListener("click", () => {
   const pomodoroBreak = Math.max(1, parseInt(pomodoroBreakInput.value) || 5);
   const enabled = !!enabledCheckbox.checked;
 
-  // send message to background - background will persist and set alarm unless paused
   chrome.runtime.sendMessage({
     action: "updateAlarm",
     mode,
@@ -47,14 +47,13 @@ saveBtn.addEventListener("click", () => {
     pomodoroBreak,
     enabled
   }, (resp) => {
-    if (chrome.runtime.lastError) {
-      statusEl.textContent = "Saved (background unavailable).";
-    } else {
-      statusEl.textContent = (resp && resp.paused) ? "Saved (paused)" : "Saved!";
-    }
-    setTimeout(() => statusEl.textContent = "", 1600);
+    statusEl.textContent = (resp && resp.paused) ? "Settings Saved (Paused)" : "Settings Saved!";
+    saveBtn.textContent = "Saved";
+    setTimeout(() => {
+      statusEl.textContent = "";
+      saveBtn.textContent = "Save Settings";
+    }, 2000);
   });
 
-  // also persist in storage for immediate reflection
   chrome.storage.sync.set({ mode, interval, pomodoroWork, pomodoroBreak, enabled });
 });

@@ -1,90 +1,32 @@
-Eyebrak – Version 1.0
-Release Date: 2025-11-03
+---
+
+Eyebrak – Version 1.1
+Release Date: 2026-03-12
 
 Overview:
-Eyebrak is a Chrome extension designed to promote eye health, digital wellness, and productivity. 
-It provides reminders, Pomodoro cycles, streak tracking, and real-time stats while keeping a clean, user-friendly interface.
+A major update focusing on reliability, modern UI/UX, and enhanced break enforcement.
 
----
+🚀 Features & Improvements – v1.1
+1. Fix Timer Reset Issue:
+   - Timer now persists correctly even if the background service worker restarts.
+2. Modern Design System:
+   - Completely redesigned UI with a premium Emerald & Sage Green palette.
+   - Glassmorphism effects and modern typography (Inter).
+   - Card-based layout for Settings and Stats.
+3. Interactive Visual Timer:
+   - Visual phase indicators (Work/Break) in the popup.
+4. Hard Break Overlay:
+   - New full-screen dimmed overlay on webpages during Pomodoro breaks to enforce resting.
+5. Modern In-Page Toasts:
+   - Replaced basic system notifications with sleek, interactive in-page toasts.
+6. Enhanced Analytics:
+   - New visual dashboard with a "Wellness Score" tracking your consistency.
 
-🚀 Features – v1.0
-
-1. Interval-based reminders
-   - Set a custom reminder interval (1-120 minutes)
-   - Repeated notifications for active tab usage
-   - One-time notifications option
-
-2. Pomodoro Mode
-   - Work and break cycles
-   - Customizable work (5-120 min) and break (1-60 min) durations
-   - Automatic alternation between work and break
-   - Countdown timer reflects Pomodoro phase
-
-3. Eye Health Tips
-   - Random tips shown in notifications
-   - Tips include 20-20-20 rule, blinking, stretching, and short walks
-
-4. Notifications
-   - Desktop notifications with tip messages
-   - Snooze functionality (5 minutes)
-   - Pause / Resume reminders directly from popup
-
-5. Streak Tracking
-   - Tracks consecutive completed Pomodoro cycles
-   - Shows current streak in popup
-
-6. Stats
-   - Total reminders triggered
-   - Total breaks taken
-   - Current streak
-   - Real-time updates on stats page
-
-7. Popup UI
-   - Countdown timer for next reminder
-   - Displays Pomodoro phase (Work/Break)
-   - Shows current streak
-   - Buttons for Pause/Resume, Settings, and Stats
-
-8. Options Page
-   - Organized settings for:
-     - Mode (Interval / One-Time / Pomodoro)
-     - Interval duration
-     - Pomodoro work/break duration
-     - Notifications toggle
-   - Changes applied immediately with alarm update
-
-9. Background Service
-   - Active-tab aware reminders
-   - Automatic alarm reset after settings change
-   - Correctly increments stats counters
-
-10. Brand Identity
-    - Extension UI uses brand color: #002719
-    - Clean, modern, readable interface
-    - Icons for 16x16, 48x48, and 128x128 resolutions
-
----
-
-🐛 Fixes – v1.0
-- Interval countdown now reflects user-selected value immediately.
-- Stats counters increment correctly in real-time.
-- Pomodoro cycles alternate properly between work and break.
-- Pause / Resume button functions correctly across all modes.
-- Fixed previous issue where popup timer always showed default 15 minutes.
-- Active-tab detection ensures notifications only appear when user is active.
-
----
+🐛 Bug Fixes – v1.1
+- Fixed a critical bug where the timer would reset to its full duration on extension updates or browser restarts.
+- Optimized storage usage for better performance.
+- Fixed layout issues on the Options page for smaller screens.
 
 📌 Notes
-- Notifications do not have custom sounds (default Chrome notification sound used).
-- Stats page shows real-time reminders, breaks, and streak.
-- Version 1.0 is the first full release, including Pomodoro mode and streak gamification.
-
----
-
-Future Updates (Planned)
-- Break screen overlay to enforce eye rest
-- Daily streak history with charts
-- User-configurable tip categories
-- Optional dark/light theme
-- More advanced wellness reminders (hydration, posture, screen brightness)
+- Version 1.1 marks the transition to a more "Pro" wellness tool with active break enforcement.
+- Toasts and Overlays require permissions for all sites to function correctly.

@@ -2,31 +2,44 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Eyebrak</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="container">
-  <h1>Eyebrak</h1>
+  <header>
+    <h1>Eyebrak</h1>
+  </header>
 
-  <!-- Timer label and countdown -->
-  <p id="timerLabel">Next reminder in:</p>
-  <p id="timer">--:--</p>
+  <div class="card timer-container" id="timerCard">
+    <div class="timer-circle">
+      <div id="timer">--:--</div>
+      <p id="timerLabel">Initializing...</p>
+    </div>
+  </div>
 
-  <!-- Streak (hidden until Pomodoro mode active) -->
-  <p id="streakContainer" style="display:none;">
-    Current streak: <span id="streak">0</span> days
-  </p>
+  <div class="card hidden" id="pomodoroCard">
+    <div class="stat-row">
+      <span>Phase</span>
+      <span class="stat-value" id="phase">--</span>
+    </div>
+    <div class="stat-row">
+      <span>Current Streak</span>
+      <span class="stat-value" id="streak">0</span>
+    </div>
+  </div>
 
-  <!-- Pomodoro phase container (hidden until Pomodoro mode) -->
-  <p id="phaseContainer" style="display:none;">
-    Current Phase: <span id="phase">--</span>
-  </p>
+  <div class="flex-row">
+    <button id="pauseBtn">
+      <span id="pauseBtnText">Pause</span>
+    </button>
+  </div>
 
-  <!-- Controls -->
-  <button id="pauseBtn">Pause</button>
-  <button id="optionsBtn">Settings</button>
-  <button id="statsBtn">Stats</button>
+  <div class="flex-row">
+    <button id="optionsBtn" class="secondary">Settings</button>
+    <button id="statsBtn" class="secondary">Stats</button>
+  </div>
 </div>
 <script src="popup.js"></script>
 </body>
