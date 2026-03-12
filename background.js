@@ -83,7 +83,7 @@ chrome.storage.sync.get(
     
     // Welcome startup sound
     if (data.startupSoundSelection && data.startupSoundSelection !== "none" && soundsEnabled && !startupSoundPlayed) {
-      playWelcomeSound(data.startupSoundSelection);
+      playSpecificSound(data.startupSoundSelection);
       startupSoundPlayed = true;
     }
 
@@ -380,19 +380,27 @@ chrome.idle.onStateChanged.addListener(state => {
     chrome.storage.sync.set({ plantHealth });
   } else if (state === "active") {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "showToast", message: "Welcome back! Timer is currently paused." });
+      if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "showToast", message: "Welcome back! Timer is currently paused." }).catch(() => {});
     });
   }
 });
 
 // Offscreen Document Setup
+let creatingOffscreen;
 async function setupOffscreenDocument(path) {
   if (await chrome.offscreen.hasDocument()) return;
-  await chrome.offscreen.createDocument({
-    url: path,
-    reasons: ['AUDIO_PLAYBACK'],
-    justification: 'Playing timer notifications and ambient sounds'
-  });
+  if (creatingOffscreen) {
+    await creatingOffscreen;
+  } else {
+    creatingOffscreen = chrome.offscreen.createDocument({
+      url: path,
+      reasons: ['AUDIO_PLAYBACK'],
+      justification: 'Playing timer notifications and ambient sounds'
+    }).catch(() => {}).finally(() => {
+      creatingOffscreen = null;
+    });
+    await creatingOffscreen;
+  }
 }
 
 async function playSpecificSound(soundName) {
@@ -401,11 +409,11 @@ async function playSpecificSound(soundName) {
     const rawName = soundName.replace("custom:", "");
     chrome.storage.local.get(["customSounds"], cdata => {
       if (cdata.customSounds && cdata.customSounds[rawName]) {
-        chrome.runtime.sendMessage({ target: 'offscreen', action: 'playSound', url: cdata.customSounds[rawName] });
+        chrome.runtime.sendMessage({ target: 'offscreen', action: 'playSound', url: cdata.customSounds[rawName] }).catch(() => {});
       }
     });
   } else {
-    chrome.runtime.sendMessage({ target: 'offscreen', action: 'playSound', url: chrome.runtime.getURL(`sounds/${soundName}.mp3`) });
+    chrome.runtime.sendMessage({ target: 'offscreen', action: 'playSound', url: chrome.runtime.getURL(`sounds/${soundName}.mp3`) }).catch(() => {});
   }
 }
 
@@ -462,7 +470,7 @@ chrome.alarms.onAlarm.addListener(alarm => {
       
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]) {
-          chrome.tabs.sendMessage(tabs[0].id, { action: "showMicroBreak", text, duration });
+          chrome.tabs.sendMessage(tabs[0].id, { action: "showMicroBreak", text, duration }).catch(() => {});
         }
       });
     });
@@ -571,7 +579,7 @@ chrome.alarms.onAlarm.addListener(alarm => {
         chrome.alarms.clear("breakBeep"); // clear beeps if any
 
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "hideOverlay" });
+          if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "hideOverlay" }).catch(() => {});
         });
         showNotification(`pomodoro-break-${Date.now()}`, "Break's over! Back to work.", false);
         playSound("work_start");
@@ -593,7 +601,7 @@ chrome.alarms.onAlarm.addListener(alarm => {
               action: "showToast",
               message: `🔥 Streak x${newStreak}! You've completed ${newStreak} session${newStreak>1?'s':''} in a row. Keep it up!`,
               duration: 5000
-            });
+            }).catch(() => {});
           });
         });
 
@@ -703,12 +711,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.action === "syncDynamicAlarms") {
-    syncDynamicAlarms();
+    syncDynamicAlarms().finally(() => sendResponse({status: "ok"}));
     return true;
   }
 
   if (msg.action === "playStandAloneSound") {
-    playWelcomeSound(msg.sound);
+    playSpecificSound(msg.sound).finally(() => sendResponse({status: "ok"}));
     return true;
   }
 });
@@ -720,7 +728,7 @@ async function handleAmbientNoise() {
   const url = shouldPlay ? chrome.runtime.getURL(`sounds/${ambientNoise}.mp3`) : "";
 
   await setupOffscreenDocument("offscreen.html");
-  chrome.runtime.sendMessage({ target: 'offscreen', action, url });
+  chrome.runtime.sendMessage({ target: 'offscreen', action, url }).catch(() => {});
 }
 
 // Activity Tracking (for Stats Graph)

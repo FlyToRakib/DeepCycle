@@ -155,7 +155,7 @@ function renderCustomReminders() {
         alarms.splice(index, 1);
         chrome.storage.sync.set({ customAlarms: alarms }, () => {
           renderCustomReminders();
-          chrome.runtime.sendMessage({ action: "syncDynamicAlarms" });
+          chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
         });
       });
       list.appendChild(row);
@@ -178,7 +178,7 @@ function renderHealthBreaks() {
         { id: Date.now() + 4, interval: 90, durationSecs: 30, text: "Close your eyes for 30 seconds to relax." }
       ];
       chrome.storage.sync.set({ healthBreaks: breaks }, () => {
-        chrome.runtime.sendMessage({ action: "syncDynamicAlarms" });
+        chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
         renderHealthBreaks();
       });
       return;
@@ -194,7 +194,7 @@ function renderHealthBreaks() {
         breaks.splice(index, 1);
         chrome.storage.sync.set({ healthBreaks: breaks }, () => {
           renderHealthBreaks();
-          chrome.runtime.sendMessage({ action: "syncDynamicAlarms" });
+          chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
         });
       });
       list.appendChild(row);
@@ -220,7 +220,7 @@ if (addHealthBreakBtn) {
         healthBreakDurationSecs.value = "";
         healthBreakText.value = "";
         renderHealthBreaks();
-        chrome.runtime.sendMessage({ action: "syncDynamicAlarms" });
+        chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
       });
     });
   });
@@ -235,7 +235,7 @@ if (resetHealthBreaksBtn) {
     ];
     chrome.storage.sync.set({ healthBreaks: defaults }, () => {
       renderHealthBreaks();
-      chrome.runtime.sendMessage({ action: "syncDynamicAlarms" });
+      chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
       alert("Health Breaks have been reset to default values.");
     });
   });
@@ -253,7 +253,7 @@ if (addOneTimeBtn) {
         customOneTimeAt.value = "";
         customOneTimeText.value = "";
         renderCustomReminders();
-        chrome.runtime.sendMessage({ action: "syncDynamicAlarms" });
+        chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
       });
     });
   });
@@ -272,7 +272,7 @@ if (addRepeatBtn) {
         customRepeatInterval.value = "";
         customRepeatText.value = "";
         renderCustomReminders();
-        chrome.runtime.sendMessage({ action: "syncDynamicAlarms" });
+        chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
       });
     });
   });
@@ -424,8 +424,8 @@ function saveSettings() {
   });
 
   chrome.runtime.sendMessage({ action: "updateAlarm", mode, pomodoroWork, pomodoroBreak, longBreakCycles, longBreakDuration, pomodoroBeepEnabled, pomodoroBeepInterval, healthBreakBeepEnabled, healthBreakBeepInterval: healthBreakBeepIntervalInput ? (parseInt(healthBreakBeepIntervalInput.value) || 60) : 60, continuousBeepSoundSelection, enabled }, resp => {
-    chrome.runtime.sendMessage({ action: "updateSettings" });
-    chrome.runtime.sendMessage({ action: "syncDynamicAlarms" });
+    chrome.runtime.sendMessage({ action: "updateSettings" }).catch(() => {});
+    chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
 
     // Sound preview on save
     if (soundsEnabled) {

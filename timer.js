@@ -114,7 +114,7 @@ function playAlarmSound() {
   chrome.storage.sync.get(["soundSelection", "soundsEnabled"], data => {
     if (data.soundsEnabled === false) return;
     const soundName = data.soundSelection || "chime";
-    chrome.runtime.sendMessage({ action: "playStandAloneSound", sound: soundName });
+    chrome.runtime.sendMessage({ action: "playStandAloneSound", sound: soundName }).catch(() => {});
   });
 }
 
@@ -168,7 +168,7 @@ function startTimer() {
   // Start optional beep loop
   if (timerBeepToggle && timerBeepToggle.checked) {
     beepIntervalId = setInterval(() => {
-      chrome.runtime.sendMessage({ action: "playStandAloneSound", sound: "beep" });
+      chrome.runtime.sendMessage({ action: "playStandAloneSound", sound: "beep" }).catch(() => {});
     }, 5000); // beep every 5s
   }
 }

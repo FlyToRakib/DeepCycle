@@ -235,7 +235,7 @@ if (addWaterBtn) {
 if (ambientSelect) {
   ambientSelect.addEventListener("change", () => {
     chrome.storage.sync.set({ ambientNoise: ambientSelect.value });
-    chrome.runtime.sendMessage({ action: "updateSettings" });
+    chrome.runtime.sendMessage({ action: "updateSettings" }).catch(() => {});
   });
 }
 

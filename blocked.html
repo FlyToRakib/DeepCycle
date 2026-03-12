@@ -179,49 +179,9 @@
   <div class="timer-remaining" id="timeDisplay">--:--</div>
   <div class="timer-label">Remaining in your session</div>
 
-  <button class="btn" onclick="history.back()">← Go Back</button>
+  <button class="btn" id="goBackBtn">← Go Back</button>
 </div>
 
-<script>
-  // Show which site was blocked
-  const params = new URLSearchParams(window.location.search);
-  const blockedSite = params.get('site');
-  if (blockedSite) {
-    document.getElementById('blockedUrl').textContent = '🚫 ' + blockedSite;
-  }
-
-  // Create floating particles
-  const container = document.getElementById('particles');
-  for (let i = 0; i < 20; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = Math.random() * 80 + 20;
-    p.style.cssText = `
-      width: ${size}px;
-      height: ${size}px;
-      left: ${Math.random() * 100}%;
-      animation-duration: ${Math.random() * 15 + 10}s;
-      animation-delay: ${Math.random() * -20}s;
-    `;
-    container.appendChild(p);
-  }
-
-  // Show remaining time from chrome alarms
-  try {
-    chrome.alarms.get('breakReminder', alarm => {
-      if (alarm) {
-        const tick = () => {
-          const rem = Math.max(0, alarm.scheduledTime - Date.now());
-          const m = Math.floor(rem / 60000);
-          const s = Math.floor((rem % 60000) / 1000);
-          document.getElementById('timeDisplay').textContent =
-            `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-          if (rem > 0) setTimeout(tick, 1000);
-        };
-        tick();
-      }
-    });
-  } catch(e) { /* Running outside extension context */ }
-</script>
+<script src="blocked.js"></script>
 </body>
 </html>
