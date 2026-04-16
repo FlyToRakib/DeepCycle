@@ -1,67 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eyebrak Stats</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepCycle Analytics</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <style>
+    .ms {
+      font-family: 'Material Symbols Rounded';
+      font-size: 18px;
+      vertical-align: middle;
+      margin-right: 5px;
+      font-variation-settings: 'FILL' 1, 'wght' 500;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-card {
+      text-align: center;
+      padding: 16px 12px;
+      background: var(--surface);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .stat-card .stat-num {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--brand-lime);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-card .stat-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+    }
+
+    .progress-ring {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      flex-shrink: 0;
+    }
+
+    .progress-ring .ring-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--brand-lime);
+    }
+  </style>
 </head>
-<body style="width: 500px; min-height: auto;">
-<div class="container">
-  <header>
-    <h1>Usage Analytics</h1>
-  </header>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-    <div class="card" style="text-align: center;">
-      <h3>Reminders</h3>
-      <div class="stat-value" id="total" style="font-size: 32px; margin-top: 10px;">0</div>
-    </div>
-    <div class="card" style="text-align: center;">
-      <h3>Breaks</h3>
-      <div class="stat-value" id="breaks" style="font-size: 32px; margin-top: 10px;">0</div>
-    </div>
-  </div>
+<body>
+  <div class="container">
+    <!-- GLOBAL HEADER -->
+    <div id="dcHeader"></div>
 
-  <div class="card">
-    <div class="stat-row">
-      <h3>Current Streak</h3>
-      <span class="stat-value" id="streak">0</span>
+    <!-- OVERVIEW STATS -->
+    <div class="stat-grid" style="margin-bottom: 12px;">
+      <div class="stat-card">
+        <div class="stat-num" id="total">0</div>
+        <div class="stat-label">Reminders</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="breaks">0</div>
+        <div class="stat-label">Breaks Taken</div>
+      </div>
     </div>
-    <p style="font-size: 12px; color: var(--text-dim); margin-top: 8px;">Keep it up! Your eyes will thank you.</p>
-  </div>
 
-  <div class="card">
-    <h3>💧 Hydration Progress</h3>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-      <span id="waterStatText">0 / 8 glasses</span>
-      <span class="stat-value" id="waterPercent">0%</span>
-    </div>
-    <div style="height: 8px; background: var(--secondary-bg); border-radius: 4px; margin-top: 8px; overflow: hidden;">
-      <div id="waterBar" style="height: 100%; width: 0%; background: #4fc3f7; transition: width 0.5s ease;"></div>
-    </div>
-  </div>
+    <!-- FOCUS MODE PROTECTION (moved to 2nd) -->
+    <div class="card" style="margin-bottom: 12px;">
+      <h3 class="section-title"><span class="ms">shield</span>Focus Mode Protection</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;" id="blockSummary">Loading...</p>
 
-  <div class="card">
-    <h3>📊 Daily Activity (Active Minutes)</h3>
-    <div id="activityGraph" style="display: flex; align-items: flex-end; gap: 4px; height: 100px; margin-top: 15px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">
-      <!-- Bars injected via JS -->
-    </div>
-    <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim); margin-top: 5px;">
-      <span>12 AM</span>
-      <span>12 PM</span>
-      <span>11 PM</span>
-    </div>
-  </div>
+      <div class="stat-grid" style="margin-top: 12px;">
+        <div class="stat-card">
+          <div class="stat-num" id="todayBlocks">0</div>
+          <div class="stat-label">Blocked Today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="totalBlocks">0</div>
+          <div class="stat-label">All Time</div>
+        </div>
+      </div>
+      <div class="stat-grid" style="margin-top: 8px;">
+        <div class="stat-card">
+          <div class="stat-num" id="uniqueDomains">0</div>
+          <div class="stat-label">Unique Sites</div>
+        </div>
+        <div class="stat-card" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <span class="ms" style="font-size: 22px; color: var(--brand-lime);">verified_user</span>
+          <span style="font-size: 12px; color: var(--text-muted);">Protected</span>
+        </div>
+      </div>
 
-  <div class="card">
-    <h3>Wellness Score</h3>
-    <div style="height: 12px; background: var(--secondary-bg); border-radius: 6px; margin-top: 12px; overflow: hidden;">
-      <div id="wellnessBar" style="height: 100%; width: 0%; background: var(--accent-color); transition: width 1s ease-out;"></div>
+      <div id="blockDomainList" style="margin-top: 12px; max-height: 180px; overflow-y: auto;"></div>
     </div>
-    <p style="text-align: right; font-size: 11px; margin-top: 5px; color: var(--text-dim);" id="wellnessText">Calculating...</p>
+
+    <!-- STREAK -->
+    <div class="card" style="margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="section-title"><span class="ms">local_fire_department</span>Current Streak</h3>
+        <span style="font-size: 24px; font-weight: 700; color: var(--brand-lime);" id="streak">0</span>
+      </div>
+      <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Complete Pomodoro sessions to build your streak!</p>
+    </div>
+
+    <!-- HYDRATION (read-only, no + button) -->
+    <div class="card" style="margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="section-title"><span class="ms">water_drop</span>Hydration</h3>
+        <span style="font-size: 14px; color: var(--text-muted);" id="waterStatText">0 / 8 glasses</span>
+      </div>
+      <div style="height: 6px; background: var(--surface); border-radius: 3px; margin-top: 10px; overflow: hidden;">
+        <div id="waterBar" style="height: 100%; width: 0%; background: var(--brand-lime); transition: width 0.5s ease; border-radius: 3px;"></div>
+      </div>
+      <div style="text-align: right; margin-top: 4px;">
+        <span style="font-size: 12px; font-weight: 600; color: var(--brand-lime);" id="waterPercent">0%</span>
+      </div>
+    </div>
+
+    <!-- DAILY ACTIVITY -->
+    <div class="card" style="margin-bottom: 12px;">
+      <h3 class="section-title"><span class="ms">bar_chart</span>Daily Activity</h3>
+      <div id="activityGraph"
+        style="display: flex; align-items: flex-end; gap: 3px; height: 80px; margin-top: 12px; border-bottom: 1px solid var(--border); padding-bottom: 4px;">
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 4px;">
+        <span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>11 PM</span>
+      </div>
+    </div>
+
+    <!-- WELLNESS SCORE -->
+    <div class="card" style="margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="section-title"><span class="ms">favorite</span>Wellness Score</h3>
+        <span style="font-size: 13px; font-weight: 600; color: var(--brand-lime);" id="wellnessText">0%</span>
+      </div>
+      <div style="height: 8px; background: var(--surface); border-radius: 4px; margin-top: 10px; overflow: hidden;">
+        <div id="wellnessBar" style="height: 100%; width: 0%; background: var(--brand-lime); transition: width 1s ease-out; border-radius: 4px;"></div>
+      </div>
+    </div>
+
+    <!-- VIRTUAL DESK PLANT -->
+    <div class="card" id="plantCard" style="text-align: center; padding: 20px; position: relative;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h3 class="section-title"><span class="ms">energy_savings_leaf</span>Virtual Desk Plant</h3>
+        <div class="plant-info-btn" id="plantInfoBtn" style="cursor:pointer;font-size:14px;color:var(--text-muted);">ⓘ</div>
+      </div>
+      <div class="plant-tooltip hidden" id="plantTooltip">
+        <p id="tooltipStage" style="font-weight: 700; color: var(--brand-lime); margin-bottom: 6px;">Seed → Sprout</p>
+        <p id="tooltipDesc" style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">Complete focus sessions to grow your plant!</p>
+        <div style="background: var(--surface); border-radius: 6px; height: 6px; overflow: hidden;">
+          <div id="plantProgressBar" style="height: 100%; background: var(--brand-lime); border-radius: 6px; width: 0%; transition: width 0.5s ease;"></div>
+        </div>
+        <p id="tooltipProgress" style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">0 / 100 health points</p>
+      </div>
+      <div id="plantContainer" style="height: 100px; display: flex; align-items: flex-end; justify-content: center; margin: 10px 0;">
+        <svg id="plantSvg" width="80" height="100" viewBox="0 0 80 100" style="transition: all 0.5s ease; overflow: visible;">
+          <rect x="28" y="78" width="24" height="18" rx="2" fill="#795548" />
+          <rect x="25" y="74" width="30" height="6" rx="3" fill="#8d6e63" />
+          <path id="plantStem" d="M40 74 Q40 55 40 35" stroke="#4caf50" stroke-width="3.5" fill="none" stroke-linecap="round" />
+          <g id="stage-seed"><circle cx="40" cy="68" r="5" fill="#a5d6a7" opacity="0.7" /></g>
+          <g id="stage-sprout" class="hidden"><circle cx="33" cy="58" r="8" fill="#81c784" /><circle cx="47" cy="52" r="8" fill="#a5d6a7" /></g>
+          <g id="stage-sapling" class="hidden"><circle cx="30" cy="55" r="11" fill="#66bb6a" /><circle cx="50" cy="45" r="11" fill="#81c784" /><circle cx="40" cy="35" r="9" fill="#a5d6a7" /></g>
+          <g id="stage-mature" class="hidden"><circle cx="24" cy="55" r="13" fill="#4caf50" /><circle cx="56" cy="48" r="13" fill="#66bb6a" /><circle cx="40" cy="32" r="14" fill="#81c784" /><circle cx="40" cy="18" r="6" fill="#ffee58" /><circle cx="40" cy="10" r="4" fill="#fdd835" /></g>
+        </svg>
+      </div>
+      <p id="plantStageLabel" style="font-size: 13px; color: var(--brand-lime); font-weight: 600;">Seed</p>
+      <p id="plantStatus" style="font-size: 12px; color: var(--text-muted);">Healthy &amp; Growing</p>
+    </div>
+
+    <!-- GLOBAL FOOTER -->
+    <div id="dcFooter"></div>
   </div>
-</div>
-<script src="stats.js"></script>
+  <script src="components.js"></script>
+  <script src="stats.js"></script>
 </body>
+
 </html>

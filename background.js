@@ -1,15 +1,15 @@
-// background.js - v2.0 Pomodoro Overhaul
-let reminderMode = "pomodoro"; // Enforced mode
+// background.js - v3.0 Manual Start, No Idle, No Salat, No Welcome Sound
+let reminderMode = "pomodoro";
 let notificationsEnabled = true;
-let pomodoroWork = 25;
+let pomodoroWork = 50;
 let pomodoroBreak = 5;
 let longBreakCycles = 4;
-let longBreakDuration = 15;
+let longBreakDuration = 10;
 let pomodoroBeepInterval = 10;
 let pomodoroBeepEnabled = false;
 let healthBreakBeepEnabled = true;
 let healthBreakBeepInterval = 60;
-let continuousBeepSoundSelection = "beep";
+let continuousBeepSoundSelection = "beep/beep";
 
 let activeHealthBeep = null;
 
@@ -20,24 +20,26 @@ let streakCount = 0;
 let waterIntake = 0;
 let blocklist = [];
 let focusModeEnabled = false;
+let sessionActive = false; // Manual start tracking
 
-let plantHealth = 100; // 0 to 100
+let plantHealth = 100;
 let lastMicroBreak = Date.now();
-let soundSelection = "chime";
+let soundSelection = "alert/chime";
 let ambientNoise = "none";
 let strictMode = false;
 let soundsEnabled = true;
 
 let focusStartTime = "09:00";
 let focusEndTime = "17:00";
+let focusExcludeDays = [];
+let focusExcludeTimes = [];
 
 let tips = [];
 let pausedRemainingMs = null;
-let startupSoundPlayed = false;
 
 // Core Initialization
 chrome.storage.sync.get(
-  ["mode", "enabled", "pomodoroWork", "pomodoroBreak", "longBreakCycles", "longBreakDuration", "pomodoroBeepEnabled", "pomodoroBeepInterval", "streakCount", "pausedRemainingMs", "waterIntake", "lastWaterReset", "blocklist", "focusModeEnabled", "focusStartTime", "focusEndTime", "totalReminders", "breaksTaken", "startupSoundSelection", "soundsEnabled", "ambientNoise", "strictMode", "soundSelection", "plantHealth"],
+  ["mode", "enabled", "pomodoroWork", "pomodoroBreak", "longBreakCycles", "longBreakDuration", "pomodoroBeepEnabled", "pomodoroBeepInterval", "streakCount", "pausedRemainingMs", "waterIntake", "lastWaterReset", "blocklist", "focusModeEnabled", "focusStartTime", "focusEndTime", "focusExcludeDays", "focusExcludeTimes", "totalReminders", "breaksTaken", "soundsEnabled", "ambientNoise", "strictMode", "soundSelection", "plantHealth", "sessionActive"],
   data => {
     if (data.mode) reminderMode = data.mode;
     if (data.enabled !== undefined) notificationsEnabled = data.enabled;
@@ -57,12 +59,25 @@ chrome.storage.sync.get(
     } else {
       healthBreakBeepInterval = 60;
     }
-    if (data.continuousBeepSoundSelection) continuousBeepSoundSelection = data.continuousBeepSoundSelection;
+    if (data.continuousBeepSoundSelection) {
+      let b = data.continuousBeepSoundSelection;
+      if (["beep", "chime", "gong", "digital"].includes(b)) b = "beep/beep";
+      continuousBeepSoundSelection = b;
+    }
     if (data.streakCount) streakCount = data.streakCount;
     if (data.waterIntake) waterIntake = data.waterIntake;
     if (data.blocklist) blocklist = data.blocklist;
     if (data.focusModeEnabled !== undefined) focusModeEnabled = data.focusModeEnabled;
     if (data.pausedRemainingMs) pausedRemainingMs = data.pausedRemainingMs;
+    if (data.focusExcludeDays) focusExcludeDays = data.focusExcludeDays;
+    
+    if (data.focusExcludeTimes !== undefined) {
+      focusExcludeTimes = data.focusExcludeTimes;
+    } else {
+      focusExcludeTimes = [{ start: "13:00", end: "13:30" }];
+      chrome.storage.sync.set({ focusExcludeTimes });
+    }
+
     // For new installs, start plant at 0 health
     if (data.plantHealth !== undefined) {
       plantHealth = data.plantHealth;
@@ -70,25 +85,32 @@ chrome.storage.sync.get(
       plantHealth = 0;
       chrome.storage.sync.set({ plantHealth: 0 });
     }
-    if (data.soundSelection) soundSelection = data.soundSelection;
-    if (data.ambientNoise) ambientNoise = data.ambientNoise;
+    if (data.soundSelection) {
+      let s = data.soundSelection;
+      if (s === "chime") s = "alert/chime";
+      if (s === "gong") s = "alert/gong";
+      if (s === "digital") s = "alert/digital";
+      soundSelection = s;
+    }
+    if (data.ambientNoise) {
+      let a = data.ambientNoise;
+      if (a === "lofi") a = "ambient/lofi";
+      if (a === "rain") a = "ambient/rain";
+      if (a === "cafe") a = "ambient/cafe";
+      ambientNoise = a;
+    }
     if (data.strictMode !== undefined) strictMode = data.strictMode;
     if (data.soundsEnabled !== undefined) soundsEnabled = data.soundsEnabled;
     if (data.focusStartTime) focusStartTime = data.focusStartTime;
     if (data.focusEndTime) focusEndTime = data.focusEndTime;
 
-    chrome.alarms.create("microBreak", { periodInMinutes: 20 });
-    chrome.alarms.create("focusModeCheck", { periodInMinutes: 1 }); // check focus active time every minute
-    syncDynamicAlarms();
-    
-    // Welcome startup sound
-    if (data.startupSoundSelection && data.startupSoundSelection !== "none" && soundsEnabled && !startupSoundPlayed) {
-      playSpecificSound(data.startupSoundSelection);
-      startupSoundPlayed = true;
-    }
+    // Session active tracking
+    if (data.sessionActive !== undefined) sessionActive = data.sessionActive;
 
-    // ... rest of init ...
-    
+    chrome.alarms.create("microBreak", { periodInMinutes: 20 });
+    chrome.alarms.create("focusModeCheck", { periodInMinutes: 1 });
+    syncDynamicAlarms();
+
     if (data.totalReminders === undefined) chrome.storage.sync.set({ totalReminders: 0 });
     if (data.breaksTaken === undefined) chrome.storage.sync.set({ breaksTaken: 0 });
 
@@ -99,11 +121,25 @@ chrome.storage.sync.get(
       chrome.storage.sync.set({ waterIntake: 0, lastWaterReset: today });
     }
 
-    chrome.alarms.get("breakReminder", (alarm) => {
-      if (!alarm && !pausedRemainingMs) {
-        setAlarm(pomodoroWork);
-      }
-    });
+    // Session persistence: only resume if session was active before browser closed
+    if (sessionActive && !pausedRemainingMs) {
+      chrome.alarms.get("breakReminder", (alarm) => {
+        if (!alarm) {
+          // Session was active but alarm is gone (browser restart) — save state for resume prompt
+          chrome.storage.local.get(["lastAlarmDurationMin", "lastAlarmScheduledTime"], ldata => {
+            if (ldata.lastAlarmScheduledTime) {
+              const elapsed = Date.now() - ldata.lastAlarmScheduledTime;
+              const totalMs = (ldata.lastAlarmDurationMin || pomodoroWork) * 60000;
+              const remaining = Math.max(0, totalMs - elapsed);
+              if (remaining > 0) {
+                // Store for resume prompt
+                chrome.storage.local.set({ pendingResumeMs: remaining });
+              }
+            }
+          });
+        }
+      });
+    }
 
     updateFocusModeRules();
   }
@@ -128,6 +164,15 @@ async function updateFocusModeRules() {
     return;
   }
 
+  // Check exclude days
+  const todayDay = new Date().getDay();
+  if (focusExcludeDays && focusExcludeDays.includes(todayDay)) {
+    if (oldRuleIds.length > 0) {
+      await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: oldRuleIds });
+    }
+    return;
+  }
+
   // Time window is optional. If start != end, apply the schedule gate.
   let isBlocking = true;
   if (focusStartTime && focusEndTime && focusStartTime !== focusEndTime) {
@@ -141,8 +186,24 @@ async function updateFocusModeRules() {
     if (startMins < endMins) {
       isBlocking = currentMins >= startMins && currentMins < endMins;
     } else {
-      // Overnight span (e.g. 22:00 to 06:00)
       isBlocking = currentMins >= startMins || currentMins < endMins;
+    }
+  }
+
+  // Check exclude time frames
+  if (isBlocking && focusExcludeTimes && focusExcludeTimes.length > 0) {
+    const now = new Date();
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+    for (const tf of focusExcludeTimes) {
+      const [sh, sm] = tf.start.split(":").map(Number);
+      const [eh, em] = tf.end.split(":").map(Number);
+      const sMins = sh * 60 + sm;
+      const eMins = eh * 60 + em;
+      if (sMins < eMins) {
+        if (currentMins >= sMins && currentMins < eMins) { isBlocking = false; break; }
+      } else {
+        if (currentMins >= sMins || currentMins < eMins) { isBlocking = false; break; }
+      }
     }
   }
 
@@ -176,11 +237,10 @@ async function updateFocusModeRules() {
   });
 }
 
-// Dynamic Alarms Sync (Hydration, Custom, Salat)
-// Dynamic Alarms Sync (Hydration, Custom, Salat, Health Breaks)
+// Dynamic Alarms Sync (Hydration, Custom, Health Breaks)
 async function syncDynamicAlarms() {
   if (activeHealthBeep) { clearInterval(activeHealthBeep); activeHealthBeep = null; }
-  chrome.storage.sync.get(["hydrationInterval", "customAlarms", "healthBreaks", "salatEnabled", "salatCity", "salatCountry", "salatLeadTime", "salatInterval", "salatRepeat"], async data => {
+  chrome.storage.sync.get(["hydrationInterval", "customAlarms", "healthBreaks"], async data => {
     // 1. Dynamic Hydration
     if (data.hydrationInterval && data.hydrationInterval > 0) {
       chrome.alarms.create("dynamicHydration", { periodInMinutes: data.hydrationInterval });
@@ -188,11 +248,10 @@ async function syncDynamicAlarms() {
       chrome.alarms.clear("dynamicHydration");
     }
 
-    // Clear old custom & salat alarms
-    // Clear old custom, salat, & health alarms
+    // Clear old custom & health alarms
     const alarms = await chrome.alarms.getAll();
     for (let a of alarms) {
-      if (a.name.startsWith("custom_") || a.name.startsWith("salat_") || a.name.startsWith("healthBreak_")) {
+      if (a.name.startsWith("custom_") || a.name.startsWith("healthBreak_")) {
         chrome.alarms.clear(a.name);
       }
     }
@@ -205,14 +264,14 @@ async function syncDynamicAlarms() {
         const [h, m] = alarm.time.split(":").map(Number);
         const now = new Date();
         let target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
-        if (target < now) target.setDate(target.getDate() + 1); // next day
+        if (target < now) target.setDate(target.getDate() + 1);
         chrome.alarms.create(alarmName, { when: target.getTime() });
       } else if (alarm.type === "repeated") {
         chrome.alarms.create(alarmName, { periodInMinutes: alarm.interval });
       }
     });
 
-    // 2.5 Advanced Health Breaks — seed defaults on first use (no options page needed)
+    // 3. Advanced Health Breaks
     let healthBreaks = data.healthBreaks;
     if (!healthBreaks || healthBreaks.length === 0) {
       const now = Date.now();
@@ -228,44 +287,6 @@ async function syncDynamicAlarms() {
       const alarmName = `healthBreak_${hb.id}_${hb.durationSecs}_${hb.text}`;
       chrome.alarms.create(alarmName, { periodInMinutes: hb.interval });
     });
-
-    // 3. Salat Reminders
-    if (data.salatEnabled && data.salatCity && data.salatCountry) {
-      const url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(data.salatCity)}&country=${encodeURIComponent(data.salatCountry)}&method=2`;
-      try {
-        const res = await fetch(url);
-        const json = await res.json();
-        if (json.code === 200) {
-          const prayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
-          const timings = json.data.timings;
-          
-          prayers.forEach(prayer => {
-            const timeStr = timings[prayer];
-            if (!timeStr) return;
-            const [h, m] = timeStr.split(":").map(Number);
-            const now = new Date();
-            let target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
-            
-            // Apply lead time
-            target.setMinutes(target.getMinutes() - (data.salatLeadTime || 15));
-            if (target < now) target.setDate(target.getDate() + 1); // next day
-            
-            // Create the first alarm for the prayer
-            chrome.alarms.create(`salat_${prayer}_1_${data.salatInterval || 2}_${data.salatRepeat || 3}`, { when: target.getTime() });
-          });
-          
-          // Save the times so we can use them to format the toast notification string
-          chrome.storage.local.set({ salatTimes: timings });
-
-          // Refresh daily fetch logic setup
-          chrome.alarms.create("salatRefresh", { periodInMinutes: 1440 });
-        }
-      } catch (err) {
-        console.error("Salat API failed:", err);
-      }
-    } else {
-      chrome.alarms.clear("salatRefresh");
-    }
   });
 }
 
@@ -280,9 +301,9 @@ function processNotifQueue() {
   }
   isProcessingQueue = true;
   const { id, message, includeTip } = notifQueue.shift();
-  
+
   const tip = (includeTip && tips.length) ? `\n\nTip: ${tips[Math.floor(Math.random() * tips.length)]}` : "";
-  
+
   chrome.notifications.create(id, {
     type: "basic",
     iconUrl: "icons/icon128.png",
@@ -291,13 +312,11 @@ function processNotifQueue() {
     priority: 2,
     buttons: [{ title: "Snooze 5 min" }]
   }, () => {
-    // Process next notification after a brief delay so Chrome doesn't ignore concurrent calls
-    setTimeout(processNotifQueue, 1000); 
+    setTimeout(processNotifQueue, 1000);
   });
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]) {
-      // Only send toasts here; Pomodoro break overlay is handled separately via showPomodoroBreak
       chrome.tabs.sendMessage(tabs[0].id, { action: "showToast", message: `${message}${tip}` }).catch(() => {});
     }
   });
@@ -321,8 +340,8 @@ function showNotification(id, message, includeTip = false) {
 function setAlarm(minutes, isResume = false) {
   chrome.alarms.clear("breakReminder", () => {
     chrome.alarms.create("breakReminder", { delayInMinutes: minutes });
-    chrome.storage.local.set({ 
-      lastAlarmScheduledTime: Date.now(), 
+    chrome.storage.local.set({
+      lastAlarmScheduledTime: Date.now(),
       lastAlarmDurationMin: isResume ? minutes : (isWorkPhase ? pomodoroWork : (isLongBreak ? longBreakDuration : pomodoroBreak))
     });
   });
@@ -371,20 +390,6 @@ function handleResume(sendResponse) {
   });
 }
 
-// Smart Idle Detection
-chrome.idle.onStateChanged.addListener(state => {
-  if (state === "idle" || state === "locked") {
-    handlePause();
-    // Decay plant health if idle too long
-    plantHealth = Math.max(0, plantHealth - 2);
-    chrome.storage.sync.set({ plantHealth });
-  } else if (state === "active") {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "showToast", message: "Welcome back! Timer is currently paused." }).catch(() => {});
-    });
-  }
-});
-
 // Offscreen Document Setup
 let creatingOffscreen;
 async function setupOffscreenDocument(path) {
@@ -409,7 +414,9 @@ async function playSpecificSound(soundName) {
     const rawName = soundName.replace("custom:", "");
     chrome.storage.local.get(["customSounds"], cdata => {
       if (cdata.customSounds && cdata.customSounds[rawName]) {
-        chrome.runtime.sendMessage({ target: 'offscreen', action: 'playSound', url: cdata.customSounds[rawName] }).catch(() => {});
+        const entry = cdata.customSounds[rawName];
+        const url = (typeof entry === "object" && entry.dataUrl) ? entry.dataUrl : entry;
+        chrome.runtime.sendMessage({ target: 'offscreen', action: 'playSound', url }).catch(() => {});
       }
     });
   } else {
@@ -429,27 +436,22 @@ chrome.alarms.onAlarm.addListener(alarm => {
     const parts = alarm.name.split("_");
     const duration = parseInt(parts[2]);
     const text = parts.slice(3).join("_");
-    
-    // Read fresh settings from storage to avoid stale global bug
+
     chrome.storage.sync.get(["healthBreakBeepEnabled", "healthBreakBeepInterval", "continuousBeepSoundSelection", "soundsEnabled", "enabled"], freshData => {
       const beepOn = freshData.healthBreakBeepEnabled !== undefined ? !!freshData.healthBreakBeepEnabled : true;
       const sndOn = freshData.soundsEnabled !== false;
       const notiOn = freshData.enabled !== false;
-      const beepSound = freshData.continuousBeepSoundSelection || "beep";
+      const beepSound = freshData.continuousBeepSoundSelection || "beep/beep";
       const beepBpm = Math.max(1, parseInt(freshData.healthBreakBeepInterval) || 60);
 
-      // Update in-memory globals to stay in sync
       healthBreakBeepEnabled = beepOn;
       healthBreakBeepInterval = beepBpm;
       continuousBeepSoundSelection = beepSound;
 
-      // 3-way alert
       showNotification(`health-${Date.now()}`, `Health Break: ${text}`, false);
-      
+
       if (beepOn && sndOn && notiOn) {
-        // Use chrome.alarms (not setInterval) - service workers can sleep and kill setInterval
-        // Store beep metadata in local storage so the alarm handler can retrieve it
-        const beepPeriodMin = 1 / beepBpm; // period in minutes per beep
+        const beepPeriodMin = 1 / beepBpm;
         const beepEndTime = Date.now() + (duration * 1000);
         chrome.storage.local.set({
           healthBeepActive: true,
@@ -457,17 +459,14 @@ chrome.alarms.onAlarm.addListener(alarm => {
           healthBeepEndTime: beepEndTime
         }, () => {
           chrome.alarms.clear("healthBreakBeep", () => {
-            // Play first beep immediately
             playSpecificSound(beepSound);
-            // Schedule repeating alarm for subsequent beeps
             chrome.alarms.create("healthBreakBeep", { periodInMinutes: Math.max(0.017, beepPeriodMin) });
           });
         });
       } else {
-        // Beep off: just one notification chime
         playSound("reminder");
       }
-      
+
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]) {
           chrome.tabs.sendMessage(tabs[0].id, { action: "showMicroBreak", text, duration }).catch(() => {});
@@ -475,53 +474,47 @@ chrome.alarms.onAlarm.addListener(alarm => {
       });
     });
   } else if (alarm.name === "healthBreakBeep") {
-    // Alarm-based beep tick for health breaks — reliable even when service worker wakes
     chrome.storage.local.get(["healthBeepActive", "healthBeepSound", "healthBeepEndTime"], d => {
       if (!d.healthBeepActive) {
         chrome.alarms.clear("healthBreakBeep");
         return;
       }
       if (Date.now() >= (d.healthBeepEndTime || 0)) {
-        // Duration expired, stop beeping
         chrome.storage.local.set({ healthBeepActive: false });
         chrome.alarms.clear("healthBreakBeep");
         return;
       }
-      playSpecificSound(d.healthBeepSound || "beep");
+      playSpecificSound(d.healthBeepSound || "beep/beep");
     });
   } else if (alarm.name === "focusModeCheck") {
     updateFocusModeRules();
   } else if (alarm.name === "dynamicHydration") {
-    showNotification(`hydrate-${Date.now()}`, "💧 Hydration Check! Time to drink a glass of water.", false);
+    showNotification(`hydrate-${Date.now()}`, "Hydration Check! Time to drink some water.", false);
     playSound("reminder");
-  } else if (alarm.name === "salatRefresh") {
-    syncDynamicAlarms();
   } else if (alarm.name.startsWith("custom_")) {
-    const text = alarm.name.split("_").slice(2).join("_");
-    showNotification(`custom-${Date.now()}-${alarm.name}`, `🔔 Reminder: ${text}`, false);
-    playSound("reminder");
-    // if one-time, it doesn't repeat automatically, but we might want to clean it up next time sync runs or just rely on alarms api
-  } else if (alarm.name.startsWith("salat_")) {
     const parts = alarm.name.split("_");
-    const prayer = parts[1];
-    const attempt = parseInt(parts[2]);
-    const interval = parseInt(parts[3]);
-    const maxRepeat = parseInt(parts[4]);
-    
-    // Check if we saved the actual time for this prayer in storage to include it
-    chrome.storage.local.get(["salatTimes"], d => {
-      const startTime = (d.salatTimes && d.salatTimes[prayer]) ? d.salatTimes[prayer] : "soon";
-      showNotification(`salat-${prayer}-${Date.now()}`, `🕌 Time for ${prayer} is approaching. (Starts at ${startTime}) [Reminder ${attempt}/${maxRepeat}]`, false);
-      playSound("gong");
-      
-      if (attempt < maxRepeat) {
-        chrome.alarms.create(`salat_${prayer}_${attempt + 1}_${interval}_${maxRepeat}`, { delayInMinutes: interval });
-      }
-    });
+    const alarmId = parseInt(parts[1]);
+    const text = parts.slice(2).join("_");
+    showNotification(`custom-${Date.now()}-${alarm.name}`, `Reminder: ${text}`, false);
+    playSound("reminder");
+
+    // Auto-remove one-time alerts after 30 seconds
+    if (alarmId) {
+      setTimeout(() => {
+        chrome.storage.sync.get(["customAlarms"], data => {
+          const alarms = data.customAlarms || [];
+          const idx = alarms.findIndex(a => a.id === alarmId && a.type === "one-time");
+          if (idx !== -1) {
+            alarms.splice(idx, 1);
+            chrome.storage.sync.set({ customAlarms: alarms });
+          }
+        });
+      }, 30000);
+    }
   }
 });
 
-// Alarm Handler (v1.3 with Sound and Plant)
+// Alarm Handler — Pomodoro Break Logic
 chrome.alarms.onAlarm.addListener(alarm => {
   // Beep during break
   if (alarm.name === "breakBeep") {
@@ -531,87 +524,82 @@ chrome.alarms.onAlarm.addListener(alarm => {
 
   if (alarm.name !== "breakReminder") return;
 
-  chrome.idle.queryState(15, async state => {
-    if (state !== "active") return;
+  if (reminderMode === "pomodoro") {
+    if (isWorkPhase) {
+      pomodoroCycleCount++;
 
-    if (reminderMode === "pomodoro") {
-      if (isWorkPhase) {
-        pomodoroCycleCount++;
-        
-        let isLong = false;
-        let breakLen = pomodoroBreak;
+      let isLong = false;
+      let breakLen = pomodoroBreak;
 
-        if (pomodoroCycleCount >= longBreakCycles) {
-          isLong = true;
-          breakLen = longBreakDuration;
-          pomodoroCycleCount = 0; // reset
-        }
-        isLongBreak = isLong;
-
-        const breakMsg = isLong ? "Long break time! Amazing focus." : "Work session finished! Time for a short break.";
-        showNotification(`pomodoro-work-${Date.now()}`, breakMsg, true);
-        playSound("break_start");
-        setAlarm(breakLen);
-        isWorkPhase = false;
-
-        // Show countdown overlay on active tab (like Advanced Health Breaks)
-        const breakDurationSecs = breakLen * 60;
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          if (tabs[0]) {
-            chrome.tabs.sendMessage(tabs[0].id, {
-              action: "showPomodoroBreak",
-              text: breakMsg,
-              duration: breakDurationSecs,
-              isLong
-            }).catch(() => {});
-          }
-        });
-
-        // Continuous Beep Setup
-        if (pomodoroBeepEnabled && pomodoroBeepInterval > 0) {
-          chrome.alarms.create("breakBeep", { periodInMinutes: (1 / pomodoroBeepInterval) });
-        }
-        
-        // Boost plant on work completion
-        plantHealth = Math.min(100, plantHealth + 5);
-        chrome.storage.sync.set({ plantHealth });
-      } else {
-        chrome.alarms.clear("breakBeep"); // clear beeps if any
-
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "hideOverlay" }).catch(() => {});
-        });
-        showNotification(`pomodoro-break-${Date.now()}`, "Break's over! Back to work.", false);
-        playSound("work_start");
-
-        // Streak logic with daily reset
-        const today = new Date().toLocaleDateString();
-        chrome.storage.sync.get(["lastCompletionDate", "streakCount"], sdata => {
-          let newStreak = (sdata.streakCount || 0) + 1;
-          if (sdata.lastCompletionDate && sdata.lastCompletionDate !== today) {
-            const lastDate = new Date(sdata.lastCompletionDate);
-            const diffDays = Math.floor((new Date() - lastDate) / 86400000);
-            if (diffDays > 1) newStreak = 1; // missed a day
-          }
-          streakCount = newStreak;
-          chrome.storage.sync.set({ streakCount: newStreak, lastCompletionDate: today });
-          // Send level-up toast
-          chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-            if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, {
-              action: "showToast",
-              message: `🔥 Streak x${newStreak}! You've completed ${newStreak} session${newStreak>1?'s':''} in a row. Keep it up!`,
-              duration: 5000
-            }).catch(() => {});
-          });
-        });
-
-        setAlarm(pomodoroWork);
-        isWorkPhase = true;
+      if (pomodoroCycleCount >= longBreakCycles) {
+        isLong = true;
+        breakLen = longBreakDuration;
+        pomodoroCycleCount = 0;
       }
-      updateFocusModeRules();
-      handleAmbientNoise();
+      isLongBreak = isLong;
+
+      const breakMsg = isLong ? "Long break time! Amazing focus." : "Work session finished! Time for a short break.";
+      showNotification(`pomodoro-work-${Date.now()}`, breakMsg, true);
+      playSound("break_start");
+      setAlarm(breakLen);
+      isWorkPhase = false;
+
+      // Show countdown overlay on active tab
+      const breakDurationSecs = breakLen * 60;
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          chrome.tabs.sendMessage(tabs[0].id, {
+            action: "showPomodoroBreak",
+            text: breakMsg,
+            duration: breakDurationSecs,
+            isLong
+          }).catch(() => {});
+        }
+      });
+
+      // Continuous Beep Setup
+      if (pomodoroBeepEnabled && pomodoroBeepInterval > 0) {
+        chrome.alarms.create("breakBeep", { periodInMinutes: (1 / pomodoroBeepInterval) });
+      }
+
+      // Boost plant on work completion
+      plantHealth = Math.min(100, plantHealth + 5);
+      chrome.storage.sync.set({ plantHealth });
+    } else {
+      chrome.alarms.clear("breakBeep");
+
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "hideOverlay" }).catch(() => {});
+      });
+      showNotification(`pomodoro-break-${Date.now()}`, "Break's over! Back to work.", false);
+      playSound("work_start");
+
+      // Streak logic with daily reset
+      const today = new Date().toLocaleDateString();
+      chrome.storage.sync.get(["lastCompletionDate", "streakCount"], sdata => {
+        let newStreak = (sdata.streakCount || 0) + 1;
+        if (sdata.lastCompletionDate && sdata.lastCompletionDate !== today) {
+          const lastDate = new Date(sdata.lastCompletionDate);
+          const diffDays = Math.floor((new Date() - lastDate) / 86400000);
+          if (diffDays > 1) newStreak = 1;
+        }
+        streakCount = newStreak;
+        chrome.storage.sync.set({ streakCount: newStreak, lastCompletionDate: today });
+        chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+          if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, {
+            action: "showToast",
+            message: `Streak x${newStreak}! You've completed ${newStreak} session${newStreak>1?'s':''} in a row.`,
+            duration: 5000
+          }).catch(() => {});
+        });
+      });
+
+      setAlarm(pomodoroWork);
+      isWorkPhase = true;
     }
-  });
+    updateFocusModeRules();
+    handleAmbientNoise();
+  }
 });
 
 chrome.notifications.onButtonClicked.addListener((notifId, btnIdx) => {
@@ -620,6 +608,72 @@ chrome.notifications.onButtonClicked.addListener((notifId, btnIdx) => {
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg || !msg.action) return false;
+
+  if (msg.action === "startSession") {
+    sessionActive = true;
+    isWorkPhase = true;
+    pausedRemainingMs = null;
+    chrome.storage.sync.set({ sessionActive: true });
+    chrome.storage.sync.remove("pausedRemainingMs");
+    chrome.storage.local.remove("pendingResumeMs");
+    setAlarm(pomodoroWork);
+    handleAmbientNoise();
+    sendResponse({ status: "started", pomodoroWork });
+    return true;
+  }
+
+  if (msg.action === "stopSession") {
+    // Full stop — clear everything
+    sessionActive = false;
+    isWorkPhase = true;
+    pausedRemainingMs = null;
+    pomodoroCycleCount = 0;
+    chrome.alarms.clear("breakReminder");
+    chrome.alarms.clear("breakBeep");
+    chrome.storage.sync.set({ sessionActive: false });
+    chrome.storage.sync.remove("pausedRemainingMs");
+    chrome.storage.local.remove("pendingResumeMs");
+    handleAmbientNoise();
+    sendResponse({ status: "stopped" });
+    return true;
+  }
+
+  if (msg.action === "trackBlock") {
+    chrome.storage.local.get(["blockedAttempts"], data => {
+      const attempts = data.blockedAttempts || { total: 0, domains: {}, daily: {} };
+      if (!attempts.daily) attempts.daily = {};
+      attempts.total++;
+      const domain = msg.domain || "unknown";
+      attempts.domains[domain] = (attempts.domains[domain] || 0) + 1;
+      // Track daily
+      const today = new Date();
+      const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+      attempts.daily[key] = (attempts.daily[key] || 0) + 1;
+      chrome.storage.local.set({ blockedAttempts: attempts });
+    });
+    sendResponse({ status: "tracked" });
+    return true;
+  }
+
+  if (msg.action === "getSessionState") {
+    chrome.storage.sync.get(["pausedRemainingMs", "sessionActive"], data => {
+      if (data.pausedRemainingMs !== null && data.pausedRemainingMs !== undefined) {
+        sendResponse({ state: "paused", pausedRemainingMs: data.pausedRemainingMs });
+      } else if (data.sessionActive) {
+        chrome.alarms.get("breakReminder", alarm => {
+          if (alarm) {
+            sendResponse({ state: "running" });
+          } else {
+            sendResponse({ state: "idle" });
+          }
+        });
+        return; // Keep channel open for async alarm check
+      } else {
+        sendResponse({ state: "idle" });
+      }
+    });
+    return true;
+  }
 
   if (msg.action === "updateAlarm") {
     reminderMode = "pomodoro";
@@ -651,11 +705,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       chrome.storage.sync.get(["pausedRemainingMs"], data => {
         if (data.pausedRemainingMs) {
           sendResponse({ status: "ok", paused: true });
-        } else {
-          const startMin = pomodoroWork;
+        } else if (sessionActive) {
           isWorkPhase = true;
-          setAlarm(startMin);
-          // Removed updateFocusModeRules() here to prevent race condition with updateSettings
+          setAlarm(pomodoroWork);
+          sendResponse({ status: "ok", paused: false });
+        } else {
           sendResponse({ status: "ok", paused: false });
         }
       });
@@ -693,16 +747,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.action === "updateSettings") {
-    chrome.storage.sync.get(["blocklist", "focusModeEnabled", "focusStartTime", "focusEndTime", "soundSelection", "microBreaksEnabled", "strictMode", "ambientNoise", "soundsEnabled"], data => {
+    chrome.storage.sync.get(["blocklist", "focusModeEnabled", "focusStartTime", "focusEndTime", "focusExcludeDays", "focusExcludeTimes", "soundSelection", "strictMode", "ambientNoise", "soundsEnabled"], data => {
       blocklist = data.blocklist || [];
       focusModeEnabled = data.focusModeEnabled || false;
       focusStartTime = data.focusStartTime || "09:00";
-      focusEndTime = data.focusEndTime || "17:00";
+      focusEndTime = data.focusEndTime || "18:00";
+      focusExcludeDays = data.focusExcludeDays || [];
+      focusExcludeTimes = data.focusExcludeTimes || [];
       soundSelection = data.soundSelection || "chime";
       strictMode = !!data.strictMode;
       ambientNoise = data.ambientNoise || "none";
       soundsEnabled = data.soundsEnabled !== false;
-      
+
       updateFocusModeRules();
       handleAmbientNoise();
       syncDynamicAlarms();
@@ -721,14 +777,50 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 });
 
+// Keyboard shortcut handler
+chrome.commands.onCommand.addListener((command) => {
+  if (command === "start-pomodoro") {
+    if (!sessionActive) {
+      // Start new session
+      sessionActive = true;
+      isWorkPhase = true;
+      pausedRemainingMs = null;
+      chrome.storage.sync.set({ sessionActive: true });
+      chrome.storage.sync.remove("pausedRemainingMs");
+      setAlarm(pomodoroWork);
+      handleAmbientNoise();
+    } else {
+      // Toggle pause/resume
+      chrome.storage.sync.get(["pausedRemainingMs"], data => {
+        if (data.pausedRemainingMs) {
+          handleResume();
+        } else {
+          handlePause();
+        }
+      });
+    }
+  }
+});
+
 async function handleAmbientNoise() {
-  const isRunning = pausedRemainingMs === null && isWorkPhase;
+  const isRunning = pausedRemainingMs === null && isWorkPhase && sessionActive;
   const shouldPlay = soundsEnabled && isRunning && ambientNoise !== "none";
   const action = shouldPlay ? "startAmbient" : "stopAmbient";
-  const url = shouldPlay ? chrome.runtime.getURL(`sounds/${ambientNoise}.mp3`) : "";
 
   await setupOffscreenDocument("offscreen.html");
-  chrome.runtime.sendMessage({ target: 'offscreen', action, url }).catch(() => {});
+  if (shouldPlay && ambientNoise.startsWith("custom:")) {
+    const rawName = ambientNoise.replace("custom:", "");
+    chrome.storage.local.get(["customSounds"], cdata => {
+      if (cdata.customSounds && cdata.customSounds[rawName]) {
+        const entry = cdata.customSounds[rawName];
+        const url = (typeof entry === "object" && entry.dataUrl) ? entry.dataUrl : entry;
+        chrome.runtime.sendMessage({ target: 'offscreen', action, url }).catch(() => {});
+      }
+    });
+  } else {
+    const url = shouldPlay ? chrome.runtime.getURL(`sounds/${ambientNoise}.mp3`) : "";
+    chrome.runtime.sendMessage({ target: 'offscreen', action, url }).catch(() => {});
+  }
 }
 
 // Activity Tracking (for Stats Graph)
@@ -736,21 +828,16 @@ chrome.alarms.create("activityLogger", { periodInMinutes: 1 });
 
 chrome.alarms.onAlarm.addListener(alarm => {
   if (alarm.name === "activityLogger") {
-    chrome.idle.queryState(60, state => {
-      if (state === "active") {
-        const hour = new Date().getHours();
-        const today = new Date().toLocaleDateString();
-        chrome.storage.local.get(["dailyUsage", "lastUsageReset"], data => {
-          let usage = data.dailyUsage || {};
-          if (data.lastUsageReset !== today) {
-            usage = {};
-            chrome.storage.local.set({ lastUsageReset: today });
-          }
-          usage[hour] = (usage[hour] || 0) + 1;
-          chrome.storage.local.set({ dailyUsage: usage });
-        });
+    const hour = new Date().getHours();
+    const today = new Date().toLocaleDateString();
+    chrome.storage.local.get(["dailyUsage", "lastUsageReset"], data => {
+      let usage = data.dailyUsage || {};
+      if (data.lastUsageReset !== today) {
+        usage = {};
+        chrome.storage.local.set({ lastUsageReset: today });
       }
+      usage[hour] = (usage[hour] || 0) + 1;
+      chrome.storage.local.set({ dailyUsage: usage });
     });
   }
 });
-

@@ -1,134 +1,228 @@
-// popup.js - v2.0 Pomodoro Only
+// popup.js - v3.1 Compact Popup with Hydration
 const timerEl = document.getElementById("timer");
 const timerLabelEl = document.getElementById("timerLabel");
-const pomodoroCard = document.getElementById("pomodoroCard");
-const streakEl = document.getElementById("streak");
-const phaseEl = document.getElementById("phase");
-const waterText = document.getElementById("waterText");
-const focusStatus = document.getElementById("focusStatus");
-const plantSvg = document.getElementById("plantSvg");
-const plantStatus = document.getElementById("plantStatus");
-const plantStageLabel = document.getElementById("plantStageLabel");
 const ambientSelect = document.getElementById("ambientSelect");
+const phaseDisplay = document.getElementById("phaseDisplay");
+const waterCount = document.getElementById("waterCount");
+const addWaterBtn = document.getElementById("addWaterBtn");
 
-const pauseBtn = document.getElementById("pauseBtn");
+const startPauseBtn = document.getElementById("startPauseBtn");
+const startPauseBtnText = document.getElementById("startPauseBtnText");
+const startPauseIcon = document.getElementById("startPauseIcon");
+const resetBtn = document.getElementById("resetBtn");
 const optionsBtn = document.getElementById("optionsBtn");
 const statsBtn = document.getElementById("statsBtn");
 const timerBtn = document.getElementById("timerBtn");
-const addWaterBtn = document.getElementById("addWaterBtn");
 const timerProgress = document.getElementById("timerProgress");
 const timerCircle = document.getElementById("timerCircle");
 
-// Plant tooltip toggle
-const plantInfoBtn = document.getElementById("plantInfoBtn");
-const plantTooltip = document.getElementById("plantTooltip");
-if (plantInfoBtn) {
-  plantInfoBtn.addEventListener("click", () => {
-    plantTooltip.classList.toggle("hidden");
-  });
-  // Close when clicking outside
-  document.addEventListener("click", e => {
-    if (!plantInfoBtn.contains(e.target) && !plantTooltip.contains(e.target)) {
-      plantTooltip.classList.add("hidden");
-    }
-  });
-}
+// Focus Mode toggle
+const focusModeToggle = document.getElementById("focusModeToggle");
+const focusToggleTrack = document.getElementById("focusToggleTrack");
+const focusToggleThumb = document.getElementById("focusToggleThumb");
 
 const CIRCLE_CIRCUMFERENCE = 502.65;
 
-let paused = false;
+let sessionState = "idle";
 let pausedRemainingMs = null;
 let lastPhase = null;
 
-// Plant growth stages
-const PLANT_STAGES = [
-  { min: 0,  max: 24,  label: "Seed 🌱",        stageId: "stage-seed",    status: "Just planted..." },
-  { min: 25, max: 49,  label: "Sprout 🌿",       stageId: "stage-sprout",  status: "Growing nicely!" },
-  { min: 50, max: 74,  label: "Sapling 🌳",      stageId: "stage-sapling", status: "Getting stronger!" },
-  { min: 75, max: 100, label: "Mature Plant 🌸",  stageId: "stage-mature",  status: "Fully Bloomed!" },
-];
-
-function getPlantStage(health) {
-  for (const s of PLANT_STAGES) {
-    if (health <= s.max) return s;
+function updateFocusToggleVisual(enabled) {
+  if (!focusToggleTrack || !focusToggleThumb) return;
+  if (enabled) {
+    focusToggleTrack.style.background = "var(--brand-lime)";
+    focusToggleTrack.style.borderColor = "var(--brand-lime)";
+    focusToggleThumb.style.left = "19px";
+    focusToggleThumb.style.background = "#002719";
+  } else {
+    focusToggleTrack.style.background = "var(--surface)";
+    focusToggleTrack.style.borderColor = "var(--border)";
+    focusToggleThumb.style.left = "3px";
+    focusToggleThumb.style.background = "var(--text-muted)";
   }
-  return PLANT_STAGES[3];
 }
 
-function updatePlantUI(health) {
-  const stage = getPlantStage(health);
-  const allStageIds = ["stage-seed", "stage-sprout", "stage-sapling", "stage-mature"];
-  allStageIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      if (id === stage.stageId) el.classList.remove("hidden");
-      else el.classList.add("hidden");
+// Focus Mode toggle handler
+if (focusModeToggle) {
+  chrome.storage.sync.get(["focusModeEnabled"], data => {
+    focusModeToggle.checked = !!data.focusModeEnabled;
+    updateFocusToggleVisual(!!data.focusModeEnabled);
+  });
+  focusModeToggle.addEventListener("change", () => {
+    const enabled = focusModeToggle.checked;
+    updateFocusToggleVisual(enabled);
+    chrome.storage.sync.set({ focusModeEnabled: enabled }, () => {
+      chrome.runtime.sendMessage({ action: "updateSettings" }).catch(() => {});
+    });
+  });
+}
+
+// Water button
+if (addWaterBtn) {
+  addWaterBtn.addEventListener("click", () => {
+    chrome.runtime.sendMessage({ action: "addWater" }, (resp) => {
+      if (resp && waterCount) waterCount.textContent = resp.waterIntake;
+    });
+  });
+  // Hover effect
+  addWaterBtn.addEventListener("mouseenter", () => {
+    addWaterBtn.style.background = "var(--brand-lime)";
+    addWaterBtn.style.color = "#002719";
+    addWaterBtn.style.borderColor = "var(--brand-lime)";
+  });
+  addWaterBtn.addEventListener("mouseleave", () => {
+    addWaterBtn.style.background = "var(--surface)";
+    addWaterBtn.style.color = "var(--text)";
+    addWaterBtn.style.borderColor = "var(--border)";
+  });
+}
+
+// Load custom ambient sounds into popup dropdown
+function loadCustomAmbientSounds() {
+  chrome.storage.local.get(["customSounds"], data => {
+    const sounds = data.customSounds || {};
+    // Remove existing custom options
+    if (ambientSelect) {
+      ambientSelect.querySelectorAll("option[data-custom]").forEach(o => o.remove());
+      Object.entries(sounds).forEach(([name, info]) => {
+        const category = (typeof info === "object" && info.category) ? info.category : "alert";
+        if (category === "ambient") {
+          const opt = document.createElement("option");
+          opt.value = `custom:${name}`;
+          opt.textContent = name.length > 20 ? name.substring(0, 20) + "..." : name;
+          opt.setAttribute("data-custom", "true");
+          ambientSelect.appendChild(opt);
+        }
+      });
     }
   });
-
-  if (plantStageLabel) plantStageLabel.textContent = stage.label;
-  if (plantStatus) plantStatus.textContent = stage.status;
-
-  // Tooltip
-  const stageIdx = PLANT_STAGES.indexOf(stage);
-  const isMax = stageIdx === 3;
-  const nextStage = isMax ? null : PLANT_STAGES[stageIdx + 1];
-  const tooltipStageEl = document.getElementById("tooltipStage");
-  const tooltipDescEl = document.getElementById("tooltipDesc");
-  const tooltipProgressEl = document.getElementById("tooltipProgress");
-  const plantProgressBar = document.getElementById("plantProgressBar");
-  
-  if (tooltipStageEl) {
-    tooltipStageEl.textContent = isMax ? "🌸 Fully Grown!" : `${stage.label} → ${nextStage.label}`;
-  }
-  if (tooltipDescEl) {
-    tooltipDescEl.textContent = isMax 
-      ? "Your plant has reached full bloom. Keep working to maintain it!" 
-      : `Reach ${nextStage.min} focus points to unlock the next stage!`;
-  }
-  
-  const progressPct = isMax ? 100 : ((health - stage.min) / (stage.max - stage.min + 1)) * 100;
-  if (plantProgressBar) plantProgressBar.style.width = `${Math.max(3, progressPct)}%`;
-  if (tooltipProgressEl) tooltipProgressEl.textContent = `${health} / ${isMax ? 100 : stage.max} focus points (grows with Pomodoro completion)`;
 }
 
-function refreshPausedState(callback) {
-  chrome.runtime.sendMessage({ action: "getPaused" }, (resp) => {
-    if (resp && resp.pausedRemainingMs !== null && resp.pausedRemainingMs !== undefined) {
-      pausedRemainingMs = resp.pausedRemainingMs;
-      paused = true;
-      pauseBtnText.textContent = "Resume";
-      pauseBtn.classList.add("secondary");
-    } else {
-      pausedRemainingMs = null;
-      paused = false;
-      pauseBtnText.textContent = "Pause";
-      pauseBtn.classList.remove("secondary");
+function loadFolderSounds(folderName, selectId) {
+  const selectEl = document.getElementById(selectId);
+  if (!selectEl) return;
+  
+  if (chrome.runtime.getPackageDirectoryEntry) {
+    chrome.runtime.getPackageDirectoryEntry((root) => {
+      root.getDirectory("sounds/" + folderName, {create: false}, (dirEntry) => {
+        const dirReader = dirEntry.createReader();
+        let entries = [];
+        const readEntries = () => {
+          dirReader.readEntries((results) => {
+            if (!results.length) {
+              Array.from(selectEl.options).forEach(opt => {
+                if(opt.value !== "none" && !opt.hasAttribute("data-custom")) opt.remove();
+              });
+              entries.filter(e => e.isFile && (e.name.endsWith(".mp3") || e.name.endsWith(".wav"))).forEach(file => {
+                const name = file.name.replace(/\.[^.]+$/, "");
+                const opt = document.createElement("option");
+                opt.value = `${folderName}/${name}`;
+                let displayName = name.length > 20 ? name.substring(0, 20) + "..." : name;
+                opt.textContent = displayName;
+                const firstCustom = selectEl.querySelector('option[data-custom]');
+                if (firstCustom) selectEl.insertBefore(opt, firstCustom);
+                else selectEl.appendChild(opt);
+              });
+              chrome.storage.sync.get(["ambientNoise"], data => {
+                requestAnimationFrame(() => {
+                  let mappedVal = null;
+                  if (selectId === "ambientSelect") {
+                    mappedVal = data.ambientNoise || "none";
+                    if (mappedVal === "lofi") mappedVal = "ambient/lofi";
+                    if (mappedVal === "rain") mappedVal = "ambient/rain";
+                    if (mappedVal === "cafe") mappedVal = "ambient/cafe";
+                  }
+                  if (mappedVal) selectEl.value = mappedVal;
+                  
+                  if (selectEl.selectedIndex === -1 && selectEl.options.length > 0) {
+                     selectEl.selectedIndex = 0;
+                  }
+                });
+              });
+            } else {
+              entries = entries.concat(Array.from(results));
+              readEntries();
+            }
+          }, () => {});
+        };
+        readEntries();
+      }, () => {});
+    });
+  }
+}
+
+function refreshSessionState(callback) {
+  chrome.runtime.sendMessage({ action: "getSessionState" }, (resp) => {
+    if (chrome.runtime.lastError || !resp) {
+      chrome.runtime.sendMessage({ action: "getPaused" }, (presp) => {
+        if (presp && presp.pausedRemainingMs !== null && presp.pausedRemainingMs !== undefined) {
+          sessionState = "paused";
+          pausedRemainingMs = presp.pausedRemainingMs;
+        } else {
+          chrome.alarms.get("breakReminder", (alarm) => {
+            sessionState = alarm ? "running" : "idle";
+            updateButtonState();
+            if (callback) callback();
+          });
+          return;
+        }
+        updateButtonState();
+        if (callback) callback();
+      });
+      return;
     }
+    sessionState = resp.state || "idle";
+    pausedRemainingMs = resp.pausedRemainingMs || null;
+    updateButtonState();
     if (callback) callback();
   });
 }
 
-let lastRemaining = null;
+function updateButtonState() {
+  if (sessionState === "idle") {
+    startPauseBtnText.textContent = "Start";
+    startPauseIcon.textContent = "play_arrow";
+    startPauseBtn.classList.remove("secondary");
+    if (resetBtn) resetBtn.style.display = "none";
+  } else if (sessionState === "running") {
+    startPauseBtnText.textContent = "Pause";
+    startPauseIcon.textContent = "pause";
+    startPauseBtn.classList.remove("secondary");
+    if (resetBtn) resetBtn.style.display = "";
+  } else if (sessionState === "paused") {
+    startPauseBtnText.textContent = "Resume";
+    startPauseIcon.textContent = "play_arrow";
+    startPauseBtn.classList.add("secondary");
+    if (resetBtn) resetBtn.style.display = "";
+  }
+}
 
 function updateUI() {
-  chrome.storage.sync.get(["mode", "streakCount", "waterIntake", "focusModeEnabled", "plantHealth", "ambientNoise", "soundsEnabled", "pomodoroWork", "reminderInterval"], (data) => {
-    // ------- TIMER -------
-    if (paused) {
+  chrome.storage.sync.get(["mode", "focusModeEnabled", "ambientNoise", "soundsEnabled", "pomodoroWork", "waterIntake"], (data) => {
+    // Water count
+    if (waterCount) waterCount.textContent = data.waterIntake || 0;
+
+    // Timer
+    if (sessionState === "paused") {
       if (pausedRemainingMs !== null) {
         const minutes = Math.floor(pausedRemainingMs / 60000);
         const seconds = Math.floor((pausedRemainingMs % 60000) / 1000);
         timerEl.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-        timerLabelEl.textContent = "⏸ Paused";
-        
+        timerLabelEl.textContent = "Paused";
+        if (phaseDisplay) phaseDisplay.textContent = "⏸ Paused";
         chrome.storage.local.get(["lastAlarmDurationMin"], ldata => {
           const total = (ldata.lastAlarmDurationMin || 25) * 60000;
           const filled = 1 - pausedRemainingMs / total;
           timerProgress.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE * (1 - filled);
         });
         if (timerCircle) timerCircle.classList.add("timer-pulsing");
-        pausedRemainingMs = Math.max(0, pausedRemainingMs - 1000);
       }
+    } else if (sessionState === "idle") {
+      timerEl.textContent = "--:--";
+      timerLabelEl.textContent = "Ready to focus";
+      if (phaseDisplay) phaseDisplay.textContent = "";
+      timerProgress.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
+      if (timerCircle) timerCircle.classList.remove("timer-pulsing");
     } else {
       if (timerCircle) timerCircle.classList.remove("timer-pulsing");
       chrome.alarms.get("breakReminder", (alarm) => {
@@ -137,23 +231,21 @@ function updateUI() {
           const minutes = Math.floor(remaining / 60000);
           const seconds = Math.floor((remaining % 60000) / 1000);
           timerEl.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-          
+
           chrome.storage.local.get(["lastAlarmDurationMin"], ldata => {
             const total = (ldata.lastAlarmDurationMin || 25) * 60000;
             const filled = 1 - remaining / total;
             timerProgress.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE * (1 - filled);
           });
 
-          // Final 60s pulse
           if (remaining < 60000 && timerCircle) {
             timerCircle.classList.add("timer-pulsing");
           }
 
-          // Mode label
           chrome.runtime.sendMessage({ action: "getPhase" }, (resp) => {
             const phase = resp ? resp.phase : "Work";
-            timerLabelEl.textContent = phase === "Work" ? "Deep Work Phase" : "Resting Phase";
-            // Phase change → body theme
+            timerLabelEl.textContent = phase === "Work" ? "Deep Work" : "Break";
+            if (phaseDisplay) phaseDisplay.textContent = phase === "Work" ? "Deep Work Phase" : "Break Phase";
             if (phase !== lastPhase) {
               lastPhase = phase;
               if (phase === "Break") {
@@ -164,69 +256,58 @@ function updateUI() {
             }
           });
         } else {
+          sessionState = "idle";
+          updateButtonState();
           timerEl.textContent = "--:--";
-          timerLabelEl.textContent = "IDLE";
+          timerLabelEl.textContent = "Ready to focus";
+          if (phaseDisplay) phaseDisplay.textContent = "";
           timerProgress.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
         }
       });
     }
 
-    // ------- POMODORO CARD -------
-    if (streakEl) streakEl.textContent = data.streakCount || 0;
-    chrome.runtime.sendMessage({ action: "getPhase" }, (resp) => {
-      if (phaseEl) phaseEl.textContent = resp ? resp.phase : "--";
-    });
-
-    // ------- WATER -------
-    if (waterText) waterText.textContent = `${data.waterIntake || 0} glasses today`;
-
-    // ------- FOCUS STATUS -------
-    if (focusStatus) {
-      focusStatus.textContent = data.focusModeEnabled ? "🟢 Active" : "⚫ Disabled";
-      focusStatus.style.color = data.focusModeEnabled ? "var(--accent-color)" : "var(--text-dim)";
-    }
-
-    // ------- SOUND CARD -------
+    // Sound card
     const soundsEnabled = data.soundsEnabled !== false;
     const soundCard = document.getElementById("soundCard");
-    if (soundCard) {
-      soundCard.classList.toggle("hidden", !soundsEnabled);
-    }
+    if (soundCard) soundCard.classList.toggle("hidden", !soundsEnabled);
     if (ambientSelect) ambientSelect.value = data.ambientNoise || "none";
-
-    // ------- PLANT -------
-    const health = Math.max(0, Math.min(100, data.plantHealth !== undefined ? data.plantHealth : 100));
-    updatePlantUI(health);
   });
 }
 
-// Pause / Resume
-pauseBtn.addEventListener("click", () => {
-  if (!paused) {
+// Start / Pause / Resume
+startPauseBtn.addEventListener("click", () => {
+  if (sessionState === "idle") {
+    chrome.runtime.sendMessage({ action: "startSession" }, () => {
+      sessionState = "running";
+      updateButtonState();
+      setTimeout(updateUI, 300);
+    });
+  } else if (sessionState === "running") {
     chrome.runtime.sendMessage({ action: "pause" }, (resp) => {
-      paused = true;
+      sessionState = "paused";
       pausedRemainingMs = resp ? resp.pausedRemainingMs : null;
-      pauseBtnText.textContent = "Resume";
-      pauseBtn.classList.add("secondary");
+      updateButtonState();
       updateUI();
     });
-  } else {
+  } else if (sessionState === "paused") {
     chrome.runtime.sendMessage({ action: "resume" }, () => {
-      paused = false;
+      sessionState = "running";
       pausedRemainingMs = null;
-      pauseBtnText.textContent = "Pause";
-      pauseBtn.classList.remove("secondary");
+      updateButtonState();
       document.body.classList.remove("break-phase");
       setTimeout(updateUI, 300);
     });
   }
 });
 
-// Water
-if (addWaterBtn) {
-  addWaterBtn.addEventListener("click", () => {
-    chrome.runtime.sendMessage({ action: "addWater" }, (resp) => {
-      if (resp && waterText) waterText.textContent = `${resp.waterIntake} glasses today`;
+// Reset button — stop session entirely
+if (resetBtn) {
+  resetBtn.addEventListener("click", () => {
+    chrome.runtime.sendMessage({ action: "stopSession" }, () => {
+      sessionState = "idle";
+      pausedRemainingMs = null;
+      updateButtonState();
+      updateUI();
     });
   });
 }
@@ -239,10 +320,30 @@ if (ambientSelect) {
   });
 }
 
-if (optionsBtn) optionsBtn.addEventListener("click", () => chrome.runtime.openOptionsPage());
-if (statsBtn) statsBtn.addEventListener("click", () => chrome.tabs.create({ url: "stats.html" }));
-if (timerBtn) timerBtn.addEventListener("click", () => chrome.tabs.create({ url: chrome.runtime.getURL("timer.html") }));
+// Helper: open or reuse a tab
+function openOrReuseTab(pageFile, fallbackAction) {
+  const targetUrl = chrome.runtime.getURL(pageFile);
+  chrome.tabs.query({}, tabs => {
+    const existing = tabs.find(t => t.url && t.url.startsWith(targetUrl));
+    if (existing) {
+      chrome.tabs.update(existing.id, { active: true });
+      chrome.windows.update(existing.windowId, { focused: true });
+    } else if (fallbackAction) {
+      fallbackAction();
+    } else {
+      chrome.tabs.create({ url: targetUrl });
+    }
+  });
+}
 
-// Start
-refreshPausedState(updateUI);
-setInterval(updateUI, 1000);
+if (optionsBtn) optionsBtn.addEventListener("click", () => openOrReuseTab("options.html", () => chrome.runtime.openOptionsPage()));
+
+if (statsBtn) statsBtn.addEventListener("click", () => openOrReuseTab("stats.html"));
+
+if (timerBtn) timerBtn.addEventListener("click", () => openOrReuseTab("timer.html", () => chrome.tabs.create({ url: chrome.runtime.getURL("timer.html") })));
+
+// Init
+loadFolderSounds("ambient", "ambientSelect");
+loadCustomAmbientSounds();
+refreshSessionState(updateUI);
+setInterval(() => { refreshSessionState(updateUI); }, 1000);

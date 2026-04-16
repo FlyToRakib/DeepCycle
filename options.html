@@ -1,275 +1,482 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DeepCycle Settings</title>
-<link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-<style>
-  .ms { font-family: 'Material Symbols Rounded'; font-size: 18px; vertical-align: middle; margin-right: 5px; font-variation-settings: 'FILL' 1, 'wght' 500; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepCycle Settings</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <style>
+    .ms {
+      font-family: 'Material Symbols Rounded';
+      font-size: 18px;
+      vertical-align: middle;
+      margin-right: 5px;
+      font-variation-settings: 'FILL' 1, 'wght' 500;
+    }
 
-  /* ── Typography system ──────────────────────────────────────── */
-  body { font-size: 14px; line-height: 1.5; }
+    /* Typography system */
+    body {
+      font-size: 14px;
+      line-height: 1.5;
+    }
 
-  /* Card section headings */
-  .card h3 { font-size: 14px; font-weight: 700; letter-spacing: 0.3px; display: flex; align-items: center; margin: 0 0 4px; }
-  .card h4 { font-size: 13px; font-weight: 600; letter-spacing: 0.2px; margin: 0 0 10px; color: var(--text-main); }
+    /* Card section headings */
+    .card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      margin: 0 0 4px;
+    }
 
-  /* All labels consistent */
-  .card label, label { font-size: 12px; font-weight: 500; color: var(--text-dim); line-height: 1.4; letter-spacing: 0.2px; margin-top: 12px; display: block; }
+    .card h4 {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      margin: 0 0 10px;
+      color: var(--text-main);
+    }
 
-  /* Inline toggle labels (checkbox rows) */
-  .card .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
-  .card .toggle-row label { margin-top: 0; font-size: 13px; font-weight: 500; color: var(--text-main); }
+    /* All labels consistent */
+    .card label,
+    label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+      line-height: 1.4;
+      letter-spacing: 0.2px;
+      margin-top: 12px;
+      display: block;
+    }
 
-  /* Guide notes */
-  .guide-note { font-size: 11px; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
+    /* Inline toggle labels (checkbox rows) */
+    .card .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+    }
 
-  /* Sub-section boxes */
-  .section-box { margin-top: 12px; padding: 12px; border: 1px solid var(--glass-border); border-radius: 8px; background: rgba(0,0,0,0.1); }
-  .section-box h4 { margin-bottom: 10px; }
+    .card .toggle-row label {
+      margin-top: 0;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
 
-  /* Input reset for consistent height */
-  .card input[type="number"], .card input[type="text"], .card input[type="time"], .card select, .card textarea {
-    font-size: 13px; padding: 9px 11px; margin-top: 6px;
-  }
+    /* Guide notes */
+    .guide-note {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
 
-  /* Small action buttons inside cards */
-  .card .btn-sm { padding: 7px 12px; font-size: 12px; font-weight: 600; }
+    /* Sub-section boxes */
+    .section-box {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      background: var(--surface);
+    }
 
-  /* Inline header toggles */
-  .card-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-  .card-header-row label { margin-top: 0; font-size: 12px; color: var(--text-dim); }
-</style>
+    .section-box h4 {
+      margin-bottom: 10px;
+    }
+
+    /* Input reset */
+    .card input[type="number"],
+    .card input[type="text"],
+    .card input[type="time"],
+    .card select,
+    .card textarea {
+      font-size: 13px;
+      padding: 9px 11px;
+      margin-top: 6px;
+    }
+
+    /* Small action buttons */
+    .card .btn-sm {
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Inline header toggles */
+    .card-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .card-header-row label {
+      margin-top: 0;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+
+    /* Exclude time frame items */
+    .exclude-time-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .exclude-time-item:last-child {
+      border-bottom: none;
+    }
+
+    /* Domain list item */
+    .domain-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .domain-item:last-child {
+      border-bottom: none;
+    }
+
+    .domain-item .domain-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .domain-tag.default {
+      background: var(--surface);
+      color: var(--text-muted);
+    }
+
+    .domain-tag.custom {
+      background: rgba(174, 237, 34, 0.1);
+      color: var(--brand-lime);
+    }
+
+    /* Sound category heading */
+    .sound-category {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 16px;
+      margin-bottom: 6px;
+    }
+  </style>
 </head>
-<body style="width: 450px; min-height: auto;">
-<div class="container">
-  <header>
-    <h1>DeepCycle Settings</h1>
-  </header>
 
-  <div class="card">
-    <h3><span class="ms">timer</span>Pomodoro Focus</h3>
-    <div style="display: flex; gap: 10px; margin-bottom: 12px; margin-top: 12px;">
-      <div style="flex: 1;">
-        <label>Work Duration (min)</label>
-        <input type="number" id="pomodoroWork" min="5" max="120">
+<body>
+  <div class="container">
+    <!-- GLOBAL HEADER -->
+    <div id="dcHeader"></div>
+
+    <!-- POMODORO FOCUS -->
+    <div class="card">
+      <h3><span class="ms">timer</span>Pomodoro Focus</h3>
+      <div style="display: flex; gap: 10px; margin-bottom: 12px; margin-top: 12px;">
+        <div style="flex: 1;">
+          <label>Work Duration (min)</label>
+          <input type="number" id="pomodoroWork" min="5" max="120">
+        </div>
+        <div style="flex: 1;">
+          <label>Break Duration (min)</label>
+          <input type="number" id="pomodoroBreak" min="1" max="60">
+        </div>
       </div>
-      <div style="flex: 1;">
-        <label>Break Duration (min)</label>
-        <input type="number" id="pomodoroBreak" min="1" max="60">
+
+      <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+        <div style="flex: 1;">
+          <label>Long Break Cycles</label>
+          <input type="number" id="longBreakCycles" min="1" max="10">
+        </div>
+        <div style="flex: 1;">
+          <label>Long Break Duration (min)</label>
+          <input type="number" id="longBreakDuration" min="5" max="120">
+        </div>
+      </div>
+
+      <div class="toggle-row" style="margin-top: 6px;">
+        <label for="pomodoroBeepEnabled">Enable Beep on Break</label>
+        <input type="checkbox" id="pomodoroBeepEnabled" style="width: auto; margin-top: 0;">
+      </div>
+      <div id="pomodoroBeepCard">
+        <label>Beeps per minute</label>
+        <input type="number" id="pomodoroBeepInterval" min="1" max="60">
       </div>
     </div>
-    
-    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-      <div style="flex: 1;">
-        <label>Long Break Cycles</label>
-        <input type="number" id="longBreakCycles" min="1" max="10">
+
+    <!-- HEALTH REMINDER -->
+    <div class="card">
+      <h3><span class="ms">self_improvement</span>Health Reminder</h3>
+      <p class="guide-note">3-way alert: Overlay, Notification, and Continuous Beep.</p>
+
+      <div class="section-box">
+        <h4>Create Health Break</h4>
+        <input type="text" id="healthBreakText" placeholder="e.g. Look 20 feet away"
+          style="width: 100%; margin-bottom: 6px;">
+        <div style="display:flex; gap:6px;">
+          <input type="number" id="healthBreakInterval" placeholder="Interval (min)" title="How often to trigger (min)"
+            min="1" max="1440" style="flex:1;">
+          <input type="number" id="healthBreakDurationSecs" placeholder="Duration (sec)"
+            title="Length of the physical break (sec)" min="5" max="300" style="flex:1;">
+        </div>
+        <div style="display: flex; gap: 6px; margin-top:8px;">
+          <button id="addHealthBreakBtn" class="action-btn btn-sm" style="flex: 1;">Add Health Break</button>
+          <button id="resetHealthBreaksBtn" class="action-btn btn-sm" style="flex: 1;">Reset Defaults</button>
+        </div>
       </div>
-      <div style="flex: 1;">
-        <label>Long Break Duration (min)</label>
-        <input type="number" id="longBreakDuration" min="5" max="120">
+
+      <div class="toggle-row" style="margin-top: 12px;">
+        <label for="healthBreakBeepEnabled">Enable Beep on Break</label>
+        <input type="checkbox" id="healthBreakBeepEnabled" style="width: auto; margin-top: 0;">
+      </div>
+      <div id="healthBreakBeepCard" class="hidden">
+        <label>Beeps per minute</label>
+        <input type="number" id="healthBreakBeepInterval" min="1" max="60" value="60">
+      </div>
+
+      <div id="healthBreaksList" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- CUSTOM REMINDER (directly under Health Breaks) -->
+    <div class="card">
+      <h3><span class="ms">notifications</span>Custom Reminder</h3>
+
+      <div
+        style="margin-bottom: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);">
+        <h4 style="margin: 0 0 4px 0; font-size: 13px;">One-Time Alert</h4>
+        <p class="guide-note" style="margin: 0 0 8px 0;">One-time alerts are automatically removed from list after the
+          notification is delivered.</p>
+        <input type="time" id="customOneTimeAt" style="width: 100%; margin-bottom: 6px; padding: 6px;">
+        <input type="text" id="customOneTimeText" placeholder="Message (e.g., Call mom)" style="margin: 0 0 6px 0;">
+        <button id="addOneTimeBtn" style="padding: 6px; font-size: 12px; width: 100%;" class="action-btn">Add
+          Alert</button>
+      </div>
+
+      <div style="padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);">
+        <h4 style="margin: 0 0 8px 0; font-size: 13px;">Repeating Alert</h4>
+        <input type="number" id="customRepeatInterval" placeholder="Interval (minutes)" min="1" max="1440"
+          style="margin-bottom: 6px;">
+        <input type="text" id="customRepeatText" placeholder="Message (e.g., Sit Up Straight)"
+          style="margin: 0 0 6px 0;">
+        <button id="addRepeatBtn" style="padding: 6px; font-size: 12px; width: 100%;" class="action-btn">Add
+          Alert</button>
+      </div>
+
+      <div id="customRemindersList" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- SOUND LIBRARY -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3><span class="ms">library_music</span>Sound Library</h3>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <label for="soundsEnabled" style="margin-top: 0; font-size: 12px;">Enable Sound</label>
+          <input type="checkbox" id="soundsEnabled" style="width: auto; margin-top: 0;" checked>
+        </div>
+      </div>
+      <p class="guide-note">Toggle all notification chimes and ambient noise on/off globally.</p>
+
+      <!-- Alert Sounds -->
+      <p class="sound-category">Alert Sounds</p>
+      <div style="display: flex; gap: 8px;">
+        <select id="soundSelection"
+          style="flex: 1; padding: 10px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-md);">
+          <option value="alert/chime">chime</option>
+          <option value="alert/gong">gong</option>
+          <option value="alert/digital">digital</option>
+        </select>
+        <button id="previewAlertBtn" class="action-btn secondary" style="padding: 10px; border-radius: var(--radius-md);" title="Preview">
+          <span class="ms" style="margin: 0;">play_arrow</span>
+        </button>
+      </div>
+
+      <!-- Ambient Sounds -->
+      <p class="sound-category">Ambient Sounds</p>
+      <div style="display: flex; gap: 8px;">
+        <select id="ambientSelect"
+          style="flex: 1; padding: 10px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-md);">
+          <option value="none">none</option>
+          <option value="ambient/lofi">lofi</option>
+          <option value="ambient/rain">rain</option>
+          <option value="ambient/cafe">cafe</option>
+        </select>
+        <button id="previewAmbientBtn" class="action-btn secondary" style="padding: 10px; border-radius: var(--radius-md);" title="Preview">
+          <span class="ms" style="margin: 0;">play_arrow</span>
+        </button>
+      </div>
+
+      <!-- Beep Sounds -->
+      <p class="sound-category">Beep Sounds</p>
+      <div style="display: flex; gap: 8px;">
+        <select id="continuousBeepSoundSelection"
+          style="flex: 1; padding: 10px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-md);">
+          <option value="beep/beep">beep</option>
+          <option value="beep/beep2">beep2</option>
+        </select>
+        <button id="previewBeepBtn" class="action-btn secondary" style="padding: 10px; border-radius: var(--radius-md);" title="Preview">
+          <span class="ms" style="margin: 0;">play_arrow</span>
+        </button>
+      </div>
+
+      <!-- Custom Sound Upload -->
+      <label style="margin-top: 16px;">Upload Custom Sound (.mp3 / .wav)</label>
+      <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
+        <input type="text" id="customSoundName" placeholder="Sound name..." style="flex: 1; margin-top: 0;">
+        <select id="customSoundCategory" style="width: auto; padding: 9px 8px; font-size: 12px; margin-top: 0;">
+          <option value="alert">Alert</option>
+          <option value="ambient">Ambient</option>
+          <option value="beep">Beep</option>
+        </select>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
+        <label for="customSoundFile"
+          style="cursor: pointer; background: var(--brand-lime); color: var(--brand-dark); padding: 10px 14px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; white-space: nowrap; margin-top: 0;">+
+          Choose File</label>
+        <input type="file" id="customSoundFile" accept=".mp3,.wav" style="display:none;">
+        <button id="addCustomSoundBtn" style="flex: 1; margin-top: 0;" class="action-btn btn-sm">Add to Library</button>
+      </div>
+      <p class="guide-note" id="customSoundStatus"></p>
+
+      <div id="customSoundsList" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- FOCUS MODE -->
+    <div class="card" style="border: 1px solid var(--brand-lime);">
+      <div class="card-header-row">
+        <h3><span class="ms">block</span>Focus Mode</h3>
+        <input type="checkbox" id="focusModeEnabled" style="width: auto; margin-top: 0;">
+      </div>
+      <p class="guide-note">Blocks websites during Focus Mode active hours.</p>
+
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <div style="flex: 1;">
+          <label>Start Time</label>
+          <input type="time" id="focusStartTime" value="09:00" style="padding: 8px;">
+        </div>
+        <div style="flex: 1;">
+          <label>End Time</label>
+          <input type="time" id="focusEndTime" value="17:00" style="padding: 8px;">
+        </div>
+      </div>
+
+      <!-- Global Exclude Days -->
+      <label style="margin-top: 12px;">Exclude Days</label>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;" id="excludeDaysContainer">
+        <label
+          style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; margin-top: 0; cursor: pointer;"><input
+            type="checkbox" class="excludeDay" value="0" style="width: auto; margin-top: 0;"> Sun</label>
+        <label
+          style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; margin-top: 0; cursor: pointer;"><input
+            type="checkbox" class="excludeDay" value="1" style="width: auto; margin-top: 0;"> Mon</label>
+        <label
+          style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; margin-top: 0; cursor: pointer;"><input
+            type="checkbox" class="excludeDay" value="2" style="width: auto; margin-top: 0;"> Tue</label>
+        <label
+          style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; margin-top: 0; cursor: pointer;"><input
+            type="checkbox" class="excludeDay" value="3" style="width: auto; margin-top: 0;"> Wed</label>
+        <label
+          style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; margin-top: 0; cursor: pointer;"><input
+            type="checkbox" class="excludeDay" value="4" style="width: auto; margin-top: 0;"> Thu</label>
+        <label
+          style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; margin-top: 0; cursor: pointer;"><input
+            type="checkbox" class="excludeDay" value="5" style="width: auto; margin-top: 0;"> Fri</label>
+        <label
+          style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; margin-top: 0; cursor: pointer;"><input
+            type="checkbox" class="excludeDay" value="6" style="width: auto; margin-top: 0;"> Sat</label>
+      </div>
+
+      <!-- Exclude Time Frames -->
+      <label style="margin-top: 12px;">Exclude Time</label>
+      <p class="guide-note">Add time windows when Focus Mode should be paused (e.g., lunch break).</p>
+      <div style="display: flex; gap: 6px; margin-top: 6px; align-items: center;">
+        <input type="time" id="excludeTimeStart" style="flex: 1; padding: 6px; margin-top: 0;">
+        <span style="font-size: 12px; color: var(--text-muted);">to</span>
+        <input type="time" id="excludeTimeEnd" style="flex: 1; padding: 6px; margin-top: 0;">
+        <button id="addExcludeTimeBtn" class="action-btn btn-sm"
+          style="margin-top: 0; white-space: nowrap;">Add</button>
+      </div>
+      <div id="excludeTimesList" style="margin-top: 8px;"></div>
+
+      <!-- Domain List -->
+      <label style="margin-top: 14px;">Blocked Domains</label>
+      <div style="display: flex; gap: 6px; margin-top: 6px;">
+        <input type="text" id="newDomainInput" placeholder="e.g. facebook.com" style="flex: 1; margin-top: 0;">
+        <button id="addDomainBtn" class="action-btn btn-sm" style="margin-top: 0;">Add</button>
+      </div>
+      <div id="domainList"
+        style="margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; max-height: 250px; overflow-y: auto;">
+      </div>
+      <button id="resetDomainsBtn" class="action-btn btn-sm" style="margin-top: 8px; width: 100%;">Reset to
+        Default</button>
+    </div>
+
+    <!-- HYDRATION -->
+    <div class="card">
+      <h3><span class="ms">water_drop</span>Hydration</h3>
+
+      <label>Daily Water Goal (glasses)</label>
+      <input type="number" id="waterGoal" min="1" max="20" placeholder="e.g. 10">
+
+      <label>Reminder Frequency (minutes)</label>
+      <input type="number" id="hydrationInterval" placeholder="e.g. 120" min="0" max="1440">
+      <p class="guide-note">Sends a push notification to drink water. Set to 0 to disable.</p>
+    </div>
+
+    <!-- KEYBOARD SHORTCUT -->
+    <div class="card">
+      <h3><span class="ms">keyboard</span>Keyboard Shortcut</h3>
+      <p class="guide-note" style="margin-bottom: 8px;">To customize your shortcut, go to chrome://extensions/shortcuts, find DeepCycle, and set your preferred key combination.</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 6px;">
+        <span style="font-size: 13px;">Open DeepCycle:</span>
+        <span style="font-size: 13px; font-weight: 600; padding: 4px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-family: monospace;">Alt + Shift + D</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 13px;">Start-Pomodoro timer:</span>
+        <span style="font-size: 13px; font-weight: 600; padding: 4px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-family: monospace;">Alt + Shift + S</span>
+      </div>
+      <div style="margin-top: 12px; text-align: right;">
+        <a href="chrome://extensions/shortcuts" target="_blank"
+          style="font-size: 12px; color: var(--brand-lime); text-decoration: none; font-weight: 500;">Customize →</a>
       </div>
     </div>
-    
-    <div class="toggle-row" style="margin-top: 6px;">
-      <label for="pomodoroBeepEnabled">Continuous Beep on Break</label>
-      <input type="checkbox" id="pomodoroBeepEnabled" style="width: auto; margin-top: 0;">
+
+    <!-- LOCK SETTINGS -->
+    <div
+      style="display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 20px;">
+      <div>
+        <h4 style="margin: 0; font-size: 14px; display: flex; align-items: center; gap: 6px;"><span
+            class="ms">lock</span>Lock Settings</h4>
+        <p style="margin: 4px 0 0; font-size: 11px; color: var(--text-muted);">Requires password ("yes") to save
+          changes.</p>
+      </div>
+      <input type="checkbox" id="strictMode" style="width: auto; margin-top: 0;">
     </div>
-    <div id="pomodoroBeepCard">
-      <label>Beeps per minute</label>
-      <input type="number" id="pomodoroBeepInterval" min="1" max="60">
-    </div>
+
+    <button id="saveBtn" class="action-btn save-btn">Save Settings</button>
+    <p id="status" style="text-align: center; color: var(--brand-lime); font-size: 13px; font-weight: 600;"></p>
+
+    <!-- GLOBAL FOOTER -->
+    <div id="dcFooter"></div>
+
   </div>
-
-  <div class="card">
-    <h3><span class="ms">favorite</span>Advanced Health Breaks</h3>
-    <p class="guide-note">3-way alert: Overlay, Notification, and Continuous Sound.</p>
-    
-    <div class="section-box">
-      <h4>Create Health Break</h4>
-      <input type="text" id="healthBreakText" placeholder="e.g. Look 20 feet away" style="width: 100%; margin-bottom: 6px;">
-      <div style="display:flex; gap:6px;">
-        <input type="number" id="healthBreakInterval" placeholder="Interval (min)" title="How often to trigger (min)" min="1" max="1440" style="flex:1;">
-        <input type="number" id="healthBreakDurationSecs" placeholder="Duration (sec)" title="Length of the physical break (sec)" min="5" max="300" style="flex:1;">
-      </div>
-      <div style="display: flex; gap: 6px; margin-top:8px;">
-        <button id="addHealthBreakBtn" class="btn-sm" style="flex: 1;">Add Health Break</button>
-        <button id="resetHealthBreaksBtn" class="btn-sm" style="flex: 1; background: rgba(239, 83, 80, 0.15); color: #ef9a9a; border: 1px solid rgba(239, 83, 80, 0.3);">Reset Defaults</button>
-      </div>
-    </div>
-
-    <div class="toggle-row" style="margin-top: 12px;">
-      <label for="healthBreakBeepEnabled">Enable Continuous Beep</label>
-      <input type="checkbox" id="healthBreakBeepEnabled" style="width: auto; margin-top: 0;">
-    </div>
-    <div id="healthBreakBeepCard" class="hidden">
-      <label>Beeps per minute</label>
-      <input type="number" id="healthBreakBeepInterval" min="1" max="60" value="60">
-    </div>
-
-    <div id="healthBreaksList" style="margin-top: 10px;"></div>
-  </div>
-
-  <div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h3><span class="ms">library_music</span>Sound Library</h3>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <label for="soundsEnabled" style="margin-top: 0; font-size: 12px;">Enable Sound</label>
-        <input type="checkbox" id="soundsEnabled" style="width: auto; margin-top: 0;" checked>
-      </div>
-    </div>
-    <p class="guide-note">Toggle all notification chimes and ambient noise on/off globally.</p>
-    
-    <label style="margin-top: 14px;">Notification Sound</label>
-    <select id="soundSelection" style="width: 100%; padding: 10px; background: var(--secondary-bg); color: var(--text-main); border: 1px solid var(--glass-border); border-radius: var(--radius-md);">
-      <option value="chime">🔔 Gentle Chime</option>
-      <option value="gong">🔔 Zen Gong</option>
-      <option value="digital">⚡ Digital Beep</option>
-    </select>
-
-    <label style="margin-top: 14px;">Startup Welcome Sound</label>
-    <select id="startupSoundSelection" style="width: 100%; padding: 10px; background: var(--secondary-bg); color: var(--text-main); border: 1px solid var(--glass-border); border-radius: var(--radius-md);">
-      <option value="none">🔇 None</option>
-      <option value="chime">🔔 Gentle Chime</option>
-      <option value="gong">🔔 Zen Gong</option>
-      <option value="digital">⚡ Digital Beep</option>
-    </select>
-
-    <label style="margin-top: 14px;">Continuous Beep Sound (Pomodoro & Health Breaks)</label>
-    <select id="continuousBeepSoundSelection" style="width: 100%; padding: 10px; background: var(--secondary-bg); color: var(--text-main); border: 1px solid var(--glass-border); border-radius: var(--radius-md);">
-      <option value="beep">📢 Default Beep</option>
-      <option value="chime">🔔 Gentle Chime</option>
-      <option value="gong">🔔 Zen Gong</option>
-      <option value="digital">⚡ Digital Beep</option>
-    </select>
-
-
-    <label style="margin-top: 14px;">Upload Custom Sound (.mp3 / .wav)</label>
-    <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
-      <input type="text" id="customSoundName" placeholder="Sound name..." style="flex: 1; margin-top: 0;">
-      <label for="customSoundFile" style="cursor: pointer; background: var(--accent-color); color: var(--primary-bg); padding: 10px 14px; border-radius: var(--radius-md); font-size: 13px; font-weight: 600; white-space: nowrap; margin-top: 0;">+ Choose File</label>
-      <input type="file" id="customSoundFile" accept=".mp3,.wav" style="display:none;">
-    </div>
-    <button id="addCustomSoundBtn" style="margin-top: 8px; background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); width: 100%;">Add to Sound Library</button>
-    <p class="guide-note" id="customSoundStatus"></p>
-    
-    <div id="customSoundsList" style="margin-top: 10px;"></div>
-
-  </div>
-
-  <div class="card" style="border: 1px solid #ef5350;">
-    <div class="card-header-row">
-      <h3><span class="ms">block</span>Restricted Site List</h3>
-      <input type="checkbox" id="focusModeEnabled" style="width: auto; margin-top: 0;">
-    </div>
-    <p class="guide-note">Blocks websites automatically between Start and End times.</p>
-    
-    <div style="display: flex; gap: 10px; margin-top: 10px;">
-      <div style="flex: 1;">
-        <label>Start Time</label>
-        <input type="time" id="focusStartTime" value="09:00" style="padding: 8px;">
-      </div>
-      <div style="flex: 1;">
-        <label>End Time</label>
-        <input type="time" id="focusEndTime" value="17:00" style="padding: 8px;">
-      </div>
-    </div>
-
-    <label class="mt-2" style="margin-top: 14px;">Blocklist (one domain per line)</label>
-    <textarea id="blocklist" style="width: 100%; height: 80px; background: var(--secondary-bg); border: 1px solid var(--glass-border); border-radius: var(--radius-md); color: var(--text-main); padding: 10px; font-family: inherit; margin-top: 6px; resize: none;" placeholder="facebook.com&#10;youtube.com"></textarea>
-    <p class="guide-note">Example: youtube.com, twitter.com</p>
-  </div>
-
-  <div class="card">
-    <div class="card-header-row">
-      <h3><span class="ms">water_drop</span>Hydration &amp; Idle</h3>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <label for="smartIdle" style="margin-top:0;">Smart Idle</label>
-        <input type="checkbox" id="smartIdle" style="width: auto; margin-top: 0;" checked>
-      </div>
-    </div>
-    <p class="guide-note">Pauses the timer if you're away for 15 minutes.</p>
-    
-    <label>Daily Water Goal (glasses)</label>
-    <input type="number" id="waterGoal" min="1" max="20" placeholder="e.g. 10">
-    
-    <label>Reminder Frequency (minutes)</label>
-    <input type="number" id="hydrationInterval" placeholder="e.g. 120" min="0" max="1440">
-    <p class="guide-note">Sends a push notification to drink water. Set to 0 to disable.</p>
-  </div>
-
-  <div class="card">
-    <h3><span class="ms">notifications</span>Custom Reminder</h3>
-    
-    <div style="margin-bottom: 12px; padding: 12px; border: 1px solid var(--glass-border); border-radius: 8px; background: rgba(0,0,0,0.1);">
-      <h4 style="margin: 0 0 8px 0; font-size: 13px;">One-Time Alert</h4>
-      <input type="time" id="customOneTimeAt" style="width: 100%; margin-bottom: 6px; padding: 6px;">
-      <input type="text" id="customOneTimeText" placeholder="Message (e.g., Call mom)" style="margin: 0 0 6px 0;">
-      <button id="addOneTimeBtn" style="padding: 6px; font-size: 12px; width: 100%;">Add Alert</button>
-    </div>
-
-    <div style="padding: 12px; border: 1px solid var(--glass-border); border-radius: 8px; background: rgba(0,0,0,0.1);">
-      <h4 style="margin: 0 0 8px 0; font-size: 13px;">Repeating Alert</h4>
-      <input type="number" id="customRepeatInterval" placeholder="Interval (minutes)" min="1" max="1440" style="margin-bottom: 6px;">
-      <input type="text" id="customRepeatText" placeholder="Message (e.g., Sit Up Straight)" style="margin: 0 0 6px 0;">
-      <button id="addRepeatBtn" style="padding: 6px; font-size: 12px; width: 100%;">Add Alert</button>
-    </div>
-
-    <div id="customRemindersList" style="margin-top: 10px;"></div>
-  </div>
-
-  <div class="card" style="border: 1px solid #00e5ff;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h3><span class="ms">mosque</span>Muslim Salat Reminder</h3>
-      <input type="checkbox" id="salatEnabled" style="width: auto; margin-top: 0;">
-    </div>
-    <p class="guide-note">Automatically schedules notifications before the 5 daily prayers (Fajr, Dhuhr, Asr, Maghrib, Isha).</p>
-    
-    <div style="display: flex; gap: 10px; margin-top: 10px;">
-      <div style="flex: 1;">
-        <label>City</label>
-        <input type="text" id="salatCity" placeholder="e.g. London" style="padding: 8px;">
-      </div>
-      <div style="flex: 1;">
-        <label>Country</label>
-        <input type="text" id="salatCountry" placeholder="e.g. UK" style="padding: 8px;">
-      </div>
-    </div>
-    
-    <label style="margin-top: 10px;">Lead Time (mins before)</label>
-    <input type="number" id="salatLeadTime" value="15" min="1" max="60">
-    
-    <div style="display: flex; gap: 10px; margin-top: 10px;">
-      <div style="flex: 1;">
-        <label>Reminder Frequency (minutes)</label>
-        <input type="number" id="hydrationInterval" placeholder="e.g. 120" min="0" max="1440">
-      </div>
-      <div style="flex: 1;">
-        <label>Daily Goal (glasses)</label>
-        <input type="number" id="waterGoal" placeholder="e.g. 8" min="1" max="50">
-      </div>
-    </div>
-    <div id="salatTimesDisplay" style="margin-top: 12px; font-size: 11px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; text-align: center; color: var(--text-main);">
-      <!-- e.g. Fajr: 05:10 | Dhuhr: 12:15 | Asr: 15:30 | Maghrib: 18:10 | Isha: 19:45 -->
-      Loading...
-    </div>
-    <p class="guide-note mt-2" id="salatStatus" style="color: var(--accent-color);"></p>
-  </div>
-
-  <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.1); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--glass-border); margin-bottom: 20px;">
-    <div>
-      <h4 style="margin: 0; font-size: 14px; display: flex; align-items: center; gap: 6px;"><span class="ms">lock</span>Lock Settings</h4>
-      <p style="margin: 4px 0 0; font-size: 11px; color: var(--text-muted);">Requires password ("yes") to save changes.</p>
-    </div>
-    <input type="checkbox" id="strictMode" style="width: auto; margin-top: 0;">
-  </div>
-
-  <button id="saveBtn">Save Settings</button>
-  <p id="status" style="text-align: center; color: var(--accent-color); font-size: 13px; font-weight: 600;"></p>
-
-</div>
-<script src="options.js"></script>
+  <script src="components.js"></script>
+  <script src="options.js"></script>
 </body>
+
 </html>

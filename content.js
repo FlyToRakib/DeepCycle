@@ -1,6 +1,11 @@
 // content.js - Handles the Break Overlay and In-page Toasts
 let overlay = null;
 
+function _esc(str) {
+  const d = document.createElement("div");
+  d.textContent = str;
+  return d.innerHTML;
+}
 
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -24,12 +29,12 @@ function createOverlay(message, tip) {
   overlay.className = "eyebrak-overlay";
   overlay.innerHTML = `
     <h1>Take a Break</h1>
-    <p>${message}</p>
+    <p>${_esc(message)}</p>
     <div class="breathing-container">
       <div class="breathing-circle"></div>
       <p>Breath in... Breath out...</p>
     </div>
-    <p style="margin-top: 20px; font-style: italic; font-size: 16px;">Tip: ${tip}</p>
+    <p style="margin-top: 20px; font-style: italic; font-size: 16px;">Tip: ${_esc(tip)}</p>
   `;
   document.body.appendChild(overlay);
 }
@@ -57,7 +62,7 @@ function showToast(message, duration = 5000) {
   toast.className = "eyebrak-toast";
   toast.innerHTML = `
     <div class="icon"></div>
-    <div>${message}</div>
+    <div>${_esc(message)}</div>
   `;
   document.body.appendChild(toast);
   
@@ -74,8 +79,8 @@ function showMicroBreakCountdown(text = "Rest your eyes.", duration = 20) {
   overlay.className = "deepcycle-micro-overlay";
   overlay.innerHTML = `
     <div class="micro-card">
-      <h2>❤️ Health Break</h2>
-      <p id="microText">${text}</p>
+      <h2>Health Break</h2>
+      <p id="microText">${_esc(text)}</p>
       <div class="micro-timer">
         <svg width="120" height="120" viewBox="0 0 120 120">
           <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8" />
@@ -117,8 +122,8 @@ function showPomodoroBreakOverlay(text = "Take a break", duration = 300) {
   overlay.className = "deepcycle-micro-overlay deepcycle-pomo-overlay"; // Reuses the CSS container style
   overlay.innerHTML = `
     <div class="micro-card">
-      <h2 style="background: linear-gradient(90deg, #81c784, #ffffff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">☕ Pomodoro Break</h2>
-      <p id="pomoText">${text}</p>
+      <h2 style="background: linear-gradient(90deg, #81c784, #ffffff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Pomodoro Break</h2>
+      <p id="pomoText">${_esc(text)}</p>
       <div class="micro-timer">
         <svg width="120" height="120" viewBox="0 0 120 120">
           <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8" />

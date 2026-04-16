@@ -13,8 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (blockedSite) {
     const blockedUrlEl = document.getElementById('blockedUrl');
     if (blockedUrlEl) {
-      blockedUrlEl.textContent = '🚫 ' + blockedSite;
+      blockedUrlEl.textContent = blockedSite;
     }
+
+    // Track this block attempt (item 15)
+    try {
+      chrome.runtime.sendMessage({ action: "trackBlock", domain: blockedSite }).catch(() => {});
+    } catch(e) { /* Outside extension context */ }
   }
 
   // Create floating particles

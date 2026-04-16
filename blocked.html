@@ -8,17 +8,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #001a11;
-      --accent: #81c784;
-      --accent2: #4db6ac;
-      --text: #f5f5f5;
-      --dim: #b0bec5;
+      --brand-dark: #002719;
+      --brand-lime: #AEED22;
+      --bg: #111827;
+      --card-bg: #1f2937;
+      --surface: #374151;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --border: #4b5563;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
-      background: radial-gradient(ellipse at 50% 0%, #003d2b 0%, #001a11 70%);
+      background: radial-gradient(ellipse at 50% 0%, #002719 0%, var(--bg) 70%);
       color: var(--text);
       display: flex;
       align-items: center;
@@ -28,7 +31,6 @@
       overflow: hidden;
     }
 
-    /* Animated background particles */
     .particles {
       position: fixed;
       inset: 0;
@@ -38,7 +40,7 @@
     .particle {
       position: absolute;
       border-radius: 50%;
-      background: rgba(129, 199, 132, 0.06);
+      background: rgba(174, 237, 34, 0.04);
       animation: float linear infinite;
     }
 
@@ -49,14 +51,14 @@
     }
 
     .card {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
       border-radius: 24px;
       padding: 60px 50px;
       max-width: 520px;
       width: 90%;
       backdrop-filter: blur(20px);
-      box-shadow: 0 40px 80px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+      box-shadow: 0 40px 80px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
       animation: slideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
@@ -69,26 +71,26 @@
       width: 80px;
       height: 80px;
       margin: 0 auto 24px;
-      background: linear-gradient(135deg, #003d2b, #002719);
-      border: 2px solid var(--accent);
+      background: linear-gradient(135deg, var(--brand-dark), #001a11);
+      border: 2px solid var(--brand-lime);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 36px;
-      box-shadow: 0 0 40px rgba(129,199,132,0.3);
+      box-shadow: 0 0 40px rgba(174,237,34,0.2);
       animation: pulse-icon 2s ease-in-out infinite;
     }
 
     @keyframes pulse-icon {
-      0%, 100% { box-shadow: 0 0 30px rgba(129,199,132,0.3); }
-      50% { box-shadow: 0 0 60px rgba(129,199,132,0.6); }
+      0%, 100% { box-shadow: 0 0 30px rgba(174,237,34,0.2); }
+      50% { box-shadow: 0 0 60px rgba(174,237,34,0.4); }
     }
 
     h1 {
       font-size: 32px;
       font-weight: 800;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      background: linear-gradient(90deg, var(--brand-lime), #81c784);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -97,7 +99,7 @@
 
     .subtitle {
       font-size: 16px;
-      color: var(--dim);
+      color: var(--text-muted);
       margin-bottom: 30px;
       line-height: 1.6;
     }
@@ -115,28 +117,28 @@
     }
 
     .tip-box {
-      background: rgba(129,199,132,0.08);
-      border: 1px solid rgba(129,199,132,0.2);
+      background: rgba(174,237,34,0.06);
+      border: 1px solid rgba(174,237,34,0.15);
       border-radius: 12px;
       padding: 16px 20px;
       margin-bottom: 30px;
       font-size: 14px;
-      color: var(--dim);
+      color: var(--text-muted);
       line-height: 1.6;
     }
     .tip-box strong {
-      color: var(--accent);
+      color: var(--brand-lime);
     }
 
     .timer-remaining {
       font-size: 28px;
       font-weight: 700;
-      color: var(--accent);
+      color: var(--brand-lime);
       margin-bottom: 6px;
     }
     .timer-label {
       font-size: 12px;
-      color: var(--dim);
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 1px;
       margin-bottom: 30px;
@@ -145,8 +147,8 @@
     .btn {
       display: inline-block;
       background: transparent;
-      border: 1px solid rgba(255,255,255,0.15);
-      color: var(--dim);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
       font-family: inherit;
       font-size: 14px;
       font-weight: 600;
@@ -156,8 +158,9 @@
       transition: all 0.2s;
     }
     .btn:hover {
-      background: rgba(255,255,255,0.05);
-      color: var(--text);
+      background: var(--brand-lime);
+      color: var(--brand-dark);
+      border-color: var(--brand-lime);
     }
   </style>
 </head>
@@ -173,7 +176,7 @@
   <div class="blocked-url" id="blockedUrl">This site is on your blocklist.</div>
 
   <div class="tip-box">
-    <strong>💡 DeepCycle Tip:</strong> Distraction sites are blocked during your active focus session. If you truly need access, you can disable Focus Mode in DeepCycle Settings.
+    <strong>DeepCycle Tip:</strong> Distraction sites are blocked while Focus Mode is active. You can toggle Focus Mode off directly from the popup or adjust settings in DeepCycle Settings.
   </div>
 
   <div class="timer-remaining" id="timeDisplay">--:--</div>

@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
   "name": "DeepCycle",
-  "version": "2.0",
-  "description": "Advanced wellness assistant. Focus Mode, Hydration, Eye Care, Ambient Sounds & Gamification.",
+  "version": "3.1",
+  "description": "Advanced wellness assistant. Focus Mode, Pomodoro Timer, Health Breaks, Ambient Sounds & Gamification.",
   "permissions": [
     "storage",
     "notifications",
     "alarms",
-    "idle",
+    "tabs",
     "activeTab",
     "scripting",
     "declarativeNetRequest",
@@ -46,6 +46,20 @@
       ]
     }
   ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+D"
+      },
+      "description": "Open DeepCycle"
+    },
+    "start-pomodoro": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Start/Pause Pomodoro Timer"
+    }
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -60,4 +74,4 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   }
-}
+}

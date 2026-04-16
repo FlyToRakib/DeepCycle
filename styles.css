@@ -1,161 +1,203 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --primary-bg: #002719;          /* Deep Emerald */
-  --secondary-bg: #003d2b;        /* Slightly lighter Emerald */
-  --accent-color: #81c784;         /* Sage Green */
-  --text-main: #f5f5f5;           /* Off-White */
-  --text-dim: #b0bec5;            /* Muted Grey */
-  --card-bg: rgba(255, 255, 255, 0.05);
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --radius-lg: 16px;
-  --radius-md: 10px;
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --brand-dark: #002719;
+  --brand-lime: #AEED22;
+  --bg: #f3f4f6;
+  --card-bg: #ffffff;
+  --surface: #f9fafb;
+  --text: #1f2937;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+
+  /* Legacy aliases */
+  --primary-bg: var(--brand-dark);
+  --secondary-bg: var(--surface);
+  --glass-border: var(--border);
+  --glass-bg: var(--card-bg);
+  --accent-color: var(--brand-lime);
+  --accent-hover: #9be01e;
+  --accent: var(--brand-lime);
+  --text-main: var(--text);
+  --text-dim: var(--text-muted);
+  --radius-md: 8px;
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --transition: all 0.2s ease;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111827;
+    --card-bg: #1f2937;
+    --surface: #374151;
+    --text: #f9fafb;
+    --text-muted: #9ca3af;
+    --border: #4b5563;
+  }
 }
 
 body {
-  font-family: 'Inter', sans-serif;
-  background: var(--primary-bg);
-  background: linear-gradient(135deg, var(--primary-bg) 0%, #001a11 100%);
-  color: var(--text-main);
-  min-height: 480px;
-  width: 380px;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  padding: 40px 20px;
+  font-family: 'Inter', 'Roboto', sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
 }
 
 .container {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  width: 100%;
+  max-width: 600px;
 }
 
-header {
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-h1 {
+header h1 {
   font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  background: linear-gradient(90deg, #fff, var(--accent-color));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  margin-bottom: 24px;
+  color: var(--text);
 }
 
-h3 {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--accent-color);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* CARDS */
 .card {
-  background: var(--card-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: var(--shadow-md);
-  transition: var(--transition);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-.card:hover {
-  border-color: var(--accent-color);
-  background: var(--glass-bg);
-}
+.mt-4 { margin-top: 32px; }
 
-/* BUTTONS */
-button {
-  background: var(--accent-color);
-  color: var(--primary-bg);
-  border: none;
-  padding: 12px 20px;
-  border-radius: var(--radius-md);
+h2 { font-size: 16px; margin: 0 0 8px 0; }
+h3 { font-size: 14px; margin: 0 0 4px 0; }
+
+p {
   font-size: 14px;
-  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+.toggle-group label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 12px;
   cursor: pointer;
-  transition: var(--transition);
-  display: inline-flex;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+.input-row {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px -5px rgba(129, 199, 132, 0.4);
-  filter: brightness(1.1);
+.save-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-button:active {
-  transform: translateY(0);
-}
-
-button.secondary {
-  background: transparent;
-  color: var(--text-main);
-  border: 1px solid var(--glass-border);
-}
-
-button.secondary-btn-outline {
-  background: transparent;
-  color: var(--text-main);
-  border: 2px solid var(--glass-border);
-}
-
-button.secondary-btn-outline:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--accent-color);
-  color: var(--accent-color);
-}
-
-button.secondary:hover {
-  background: var(--glass-bg);
-  box-shadow: none;
-}
-
-/* INPUTS */
-input, select {
-  width: 100%;
-  background: var(--secondary-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  padding: 12px;
-  color: var(--text-main);
+input[type="number"], input[type="text"], textarea, input[type="time"], select {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text);
   font-family: inherit;
-  font-size: 14px;
-  margin-top: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input[type="number"] { width: 120px; }
+textarea { height: 100px; resize: vertical; }
+
+input:focus, textarea:focus, select:focus {
   outline: none;
-  transition: var(--transition);
+  border-color: var(--brand-lime);
 }
 
-input:focus, select:focus {
-  border-color: var(--accent-color);
-  background: rgba(0, 61, 43, 0.8);
+/* Neutral Buttons with fixed Lime Hover state */
+button.action-btn {
+  font-family: inherit;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
 }
 
-label {
-  font-size: 13px;
-  color: var(--text-dim);
-  font-weight: 500;
+button.action-btn.secondary { /* For popup buttons */
+  background-color: var(--card-bg);
 }
+
+button.action-btn:hover {
+  background-color: var(--brand-lime);
+  color: #002719; /* Fixed text blending issue */
+  border-color: var(--brand-lime);
+}
+
+.save-btn {
+  padding: 12px 32px;
+  font-size: 16px;
+}
+
+.status { color: #10b981; font-weight: bold; font-size: 14px; }
+.hidden { display: none !important; }
+
+/* Sessions List */
+#sessionsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.session-item:last-child { border-bottom: none; }
+.session-info strong { display: block; font-size: 14px; }
+.session-info span { font-size: 12px; color: var(--text-muted); }
+.session-actions { display: flex; gap: 8px; }
+
+button.outline-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button.outline-btn:hover {
+  background-color: var(--brand-lime);
+  color: #002719;
+  border-color: var(--brand-lime);
+}
+
+button.outline-btn.delete-btn:hover {
+  background-color: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+/* --- ADDITIONAL REQUIRED STYLES MAPPED TO NEW VARS --- */
+.flex-row { display: flex; gap: 10px; width: 100%; }
+.mt-2 { margin-top: 8px; }
 
 /* TIMER SPECIFIC */
 .timer-container {
@@ -184,13 +226,23 @@ label {
   font-size: 36px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
 
 #timerLabel {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--text-muted);
   text-align: center;
   max-width: 80%;
+}
+
+@keyframes timerPulse {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(174, 237, 34, 0.4)); }
+  50% { filter: drop-shadow(0 0 20px rgba(174, 237, 34, 0.8)); }
+}
+
+.timer-pulsing #timerProgress {
+  animation: timerPulse 1.2s ease-in-out infinite;
 }
 
 /* STATS ELEMENTS */
@@ -199,7 +251,7 @@ label {
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
 }
 
 .stat-row:last-child {
@@ -208,18 +260,13 @@ label {
 
 .stat-value {
   font-weight: 700;
-  color: var(--accent-color);
+  color: var(--brand-lime);
   font-size: 18px;
 }
 
-/* UTILS */
-.hidden { display: none !important; }
-.mt-2 { margin-top: 8px; }
-.flex-row { display: flex; gap: 10px; width: 100%; }
-
 .guide-note {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--text-muted);
   margin-top: 4px;
   line-height: 1.4;
 }
@@ -229,29 +276,29 @@ label {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: rgba(129,199,132,0.12);
-  color: var(--accent-color);
+  background: var(--surface);
+  color: var(--brand-lime);
   font-size: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid rgba(129,199,132,0.25);
-  transition: var(--transition);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
   flex-shrink: 0;
 }
 .plant-info-btn:hover {
-  background: rgba(129,199,132,0.25);
+  background: var(--brand-lime);
+  color: #002719;
 }
 
 .plant-tooltip {
-  background: rgba(0,40,25,0.95);
-  border: 1px solid rgba(129,199,132,0.25);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 14px;
   margin-bottom: 10px;
   text-align: left;
-  backdrop-filter: blur(12px);
   animation: fadeIn 0.2s ease;
 }
 
@@ -260,28 +307,12 @@ label {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* TIMER PULSE */
-@keyframes timerPulse {
-  0%, 100% { filter: drop-shadow(0 0 6px #00e5ff88); }
-  50% { filter: drop-shadow(0 0 20px #00e5ffcc); }
-}
-
-.timer-pulsing #timerProgress {
-  animation: timerPulse 1.2s ease-in-out infinite;
-}
-
-/* NEXT BREAK LABEL */
-.next-break-label {
-  font-size: 10px;
-  color: var(--text-dim);
-  margin-top: 2px;
-  letter-spacing: 0.5px;
-}
-
 /* BREAK PHASE THEME */
 body.break-phase {
-  background: linear-gradient(135deg, #0a2a1a 0%, #001a11 100%);
+  background-color: var(--surface);
 }
-body.break-phase #timerProgress {
-  stroke: url(#timerGradBreak);
+
+/* Fix width overrides for inputs so flex works correctly if needed */
+.card input[type="number"], .card input[type="text"], .card input[type="time"], .card select, .card textarea {
+    width: 100%;
 }

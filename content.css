@@ -1,4 +1,4 @@
-/* content.css - Styling for the Break Overlay and Toasts */
+/* content.css - Styling for the Break Overlay and Toasts (Rebranded) */
 .eyebrak-overlay {
   position: fixed;
   top: 0;
@@ -7,12 +7,12 @@
   height: 100vh;
   background: rgba(0, 39, 25, 0.95);
   backdrop-filter: blur(10px);
-  z-index: 2147483647; /* Max z-index */
+  z-index: 2147483647;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #f5f5f5;
+  color: #f9fafb;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   transition: opacity 0.5s ease;
   pointer-events: all;
@@ -20,7 +20,7 @@
 
 .eyebrak-overlay h1 {
   font-size: 48px;
-  background: linear-gradient(90deg, #fff, #81c784);
+  background: linear-gradient(90deg, #AEED22, #81c784);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -29,7 +29,7 @@
 
 .eyebrak-overlay p {
   font-size: 20px;
-  color: #b0bec5;
+  color: #9ca3af;
   text-align: center;
   max-width: 600px;
 }
@@ -38,11 +38,11 @@
   position: fixed;
   bottom: 24px;
   right: 24px;
-  background: #003d2b;
-  border: 1px solid rgba(255,255,255,0.1);
+  background: #1f2937;
+  border: 1px solid #4b5563;
   border-radius: 12px;
   padding: 16px 20px;
-  color: #f5f5f5;
+  color: #f9fafb;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
   z-index: 2147483647;
   display: flex;
@@ -63,7 +63,7 @@
 .eyebrak-toast .icon {
   width: 24px;
   height: 24px;
-  background: #81c784;
+  background: #AEED22;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -85,12 +85,12 @@
 }
 
 .deepcycle-micro-overlay .micro-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(31, 41, 55, 0.95);
+  border: 1px solid #4b5563;
   padding: 40px;
   border-radius: 24px;
   text-align: center;
-  color: white;
+  color: #f9fafb;
   box-shadow: 0 20px 40px rgba(0,0,0,0.3);
   animation: microPopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -104,14 +104,14 @@
   font-size: 24px;
   font-weight: 700;
   margin: 0 0 10px 0;
-  background: linear-gradient(90deg, #81c784, #00e5ff);
+  background: linear-gradient(90deg, #AEED22, #81c784);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .deepcycle-micro-overlay p {
-  color: #b0bec5;
+  color: #9ca3af;
   font-size: 15px;
   margin: 0 0 30px 0;
 }
@@ -131,5 +131,5 @@
   justify-content: center;
   font-size: 32px;
   font-weight: 700;
-  color: #00e5ff;
+  color: #AEED22;
 }

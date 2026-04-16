@@ -1,164 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DeepCycle</title>
-<link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-<style>.ms { font-family: 'Material Symbols Rounded'; font-size: 18px; vertical-align: middle; margin-right: 4px; font-variation-settings: 'FILL' 1, 'wght' 500; }</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepCycle</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <style>
+    .ms {
+      font-family: 'Material Symbols Rounded';
+      font-size: 18px;
+      vertical-align: middle;
+      margin-right: 4px;
+      font-variation-settings: 'FILL' 1, 'wght' 500;
+    }
+
+    body {
+      padding: 10px 14px 8px;
+      width: 380px;
+    }
+
+    .container {
+      max-width: 380px;
+    }
+
+    /* Hydration vertical strip */
+    .hydration-strip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 4px 6px;
+      margin-left: 12px;
+      border-left: 1px solid var(--border);
+      min-width: 42px;
+    }
+
+    .hydration-strip .h-btn {
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .hydration-strip .h-btn:hover {
+      background: var(--brand-lime);
+      color: #002719;
+      border-color: var(--brand-lime);
+    }
+
+    .hydration-strip .h-count {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .hydration-strip .h-icon {
+      font-size: 16px;
+      color: var(--brand-lime);
+      opacity: 0.5;
+      margin: 0;
+    }
+  </style>
 </head>
+
 <body>
-<div class="container" style="padding-bottom: 20px;">
-  <header>
-    <h1>DeepCycle</h1>
-  </header>
+  <div class="container" style="padding-bottom: 4px;">
+    <header style="margin-bottom: 6px;">
+      <h1 style="font-size: 16px; margin-bottom: 4px; font-weight: 500; color: var(--text-muted);">DeepCycle</h1>
+    </header>
 
-  <!-- ADVANCED TIMER (top CTA, right below brand header) -->
-  <div class="flex-row" style="margin-top: 0; margin-bottom: 4px;">
-    <button id="timerBtn" title="Advanced Timer" style="width: 100%; padding: 12px; background: var(--accent-color); color: var(--primary-bg); font-weight: 700; font-size: 14px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); border: none;">
-      <span class="ms">timer</span> Advanced Timer
-    </button>
-  </div>
+    <!-- TIMER CARD (contains timer + hydration strip) -->
+    <div class="card" id="timerCard" style="padding: 12px 14px; margin-bottom: 8px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <!-- LEFT: Timer circle -->
+        <div style="width: 110px; height: 110px; position: relative; flex-shrink: 0;">
+          <svg width="110" height="110" viewBox="0 0 180 180"
+            style="position: absolute; top: 0; left: 0; transform: rotate(-90deg);">
+            <circle cx="90" cy="90" r="80" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6" />
+            <circle id="timerProgress" cx="90" cy="90" r="80" fill="none" stroke="var(--brand-lime)" stroke-width="6"
+              stroke-dasharray="502.65" stroke-dashoffset="0" stroke-linecap="round"
+              style="transition: stroke-dashoffset 1s linear; filter: drop-shadow(0 0 6px rgba(174,237,34,0.4));" />
+          </svg>
+          <!-- Timer text: absolute dead-center -->
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+            <div id="timer" style="font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); line-height: 1; white-space: nowrap;">--:--</div>
+            <div id="timerLabel" style="font-size: 8px; color: var(--text-muted); margin-top: 4px; line-height: 1; white-space: nowrap;">Ready to focus</div>
+          </div>
+        </div>
 
-  <!-- TIMER -->
-  <div class="card timer-container" id="timerCard">
-    <div class="timer-circle" id="timerCircle">
-      <svg width="180" height="180" viewBox="0 0 180 180" style="position: absolute; overflow: visible; transform: rotate(-90deg);">
-        <defs>
-          <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:var(--secondary-bg);" />
-            <stop offset="100%" style="stop-color:var(--accent-color);" />
-          </linearGradient>
-        </defs>
-        <circle cx="90" cy="90" r="80" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8" />
-        <circle id="timerProgress" cx="90" cy="90" r="80" fill="none"
-          stroke="url(#timerGrad)" stroke-width="8"
-          stroke-dasharray="502.65" stroke-dashoffset="0"
-          stroke-linecap="round"
-          style="transition: stroke-dashoffset 1s linear; filter: drop-shadow(0 0 8px rgba(129,199,132,0.5));" />
-      </svg>
-      <div id="timer">--:--</div>
-      <p id="timerLabel">Initializing...</p>
-    </div>
-  </div>
+        <!-- MIDDLE: Phase + Controls -->
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; min-width: 0;">
+          <div id="phaseDisplay" style="font-size: 11px; color: var(--text-muted); font-weight: 500;"></div>
+          <div style="display: flex; gap: 6px;">
+            <button id="startPauseBtn" class="action-btn"
+              style="flex: 1; padding: 8px 10px; font-weight: 600; font-size: 12px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <span class="ms" style="font-size: 14px;" id="startPauseIcon">play_arrow</span>
+              <span id="startPauseBtnText">Start</span>
+            </button>
+            <button id="resetBtn" class="action-btn secondary"
+              style="padding: 8px 10px; font-size: 12px; border-radius: 6px; display: none;" title="Reset">
+              <span class="ms" style="font-size: 14px;">stop</span>
+            </button>
+          </div>
+        </div>
 
-  <!-- POMODORO CARD -->
-  <div class="card" id="pomodoroCard">
-    <div class="stat-row">
-      <span>Phase</span>
-      <span class="stat-value" id="phase">--</span>
-    </div>
-    <div class="stat-row">
-      <span><span class="ms">local_fire_department</span>Streak</span>
-      <span class="stat-value" id="streak">0</span>
-    </div>
-    <div class="stat-row" style="border-bottom: none;">
-      <span>Plant Stage</span>
-      <span id="plantStageLabel" style="font-size:13px; color: var(--accent);">Seed 🌱</span>
-    </div>
-  </div>
-
-  <!-- VIRTUAL DESK PLANT -->
-  <div class="card plant-card" id="plantCard" style="text-align: center; padding: 15px; position: relative;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-      <h3><span class="ms">energy_savings_leaf</span>Virtual Desk Plant</h3>
-      <div class="plant-info-btn" id="plantInfoBtn">ⓘ</div>
-    </div>
-    <!-- Tooltip -->
-    <div class="plant-tooltip hidden" id="plantTooltip">
-      <p id="tooltipStage" style="font-weight: 700; color: var(--accent); margin-bottom: 6px;">Seed → Sprout</p>
-      <p id="tooltipDesc" style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px;">Complete focus sessions to grow your plant!</p>
-      <div style="background: rgba(255,255,255,0.05); border-radius: 6px; height: 6px; overflow: hidden;">
-        <div id="plantProgressBar" style="height: 100%; background: linear-gradient(90deg, #81c784, #4db6ac); border-radius: 6px; width: 0%; transition: width 0.5s ease;"></div>
+        <!-- RIGHT: Hydration strip (vertical separator) -->
+        <div class="hydration-strip">
+          <button id="addWaterBtn" class="h-btn" title="Add water">+</button>
+          <span id="waterCount" class="h-count">0</span>
+          <span class="ms h-icon">water_drop</span>
+        </div>
       </div>
-      <p id="tooltipProgress" style="font-size: 10px; color: var(--text-dim); margin-top: 4px;">0 / 100 health points</p>
     </div>
 
-    <!-- Plant SVG - Stage-based rendering -->
-    <div id="plantContainer" style="height: 100px; display: flex; align-items: flex-end; justify-content: center; margin: 10px 0;">
-      <svg id="plantSvg" width="80" height="100" viewBox="0 0 80 100" style="transition: all 0.5s ease; overflow: visible;">
-        <!-- Pot -->
-        <rect x="28" y="78" width="24" height="18" rx="2" fill="#795548" />
-        <rect x="25" y="74" width="30" height="6" rx="3" fill="#8d6e63" />
-        <!-- Stem -->
-        <path id="plantStem" d="M40 74 Q40 55 40 35" stroke="#4caf50" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-        <!-- Stage 1: Seed leaves -->
-        <g id="stage-seed">
-          <circle cx="40" cy="68" r="5" fill="#a5d6a7" opacity="0.7"/>
-        </g>
-        <!-- Stage 2: Sprout -->
-        <g id="stage-sprout" class="hidden">
-          <circle cx="33" cy="58" r="8" fill="#81c784"/>
-          <circle cx="47" cy="52" r="8" fill="#a5d6a7"/>
-        </g>
-        <!-- Stage 3: Sapling -->
-        <g id="stage-sapling" class="hidden">
-          <circle cx="30" cy="55" r="11" fill="#66bb6a"/>
-          <circle cx="50" cy="45" r="11" fill="#81c784"/>
-          <circle cx="40" cy="35" r="9" fill="#a5d6a7"/>
-        </g>
-        <!-- Stage 4: Mature -->
-        <g id="stage-mature" class="hidden">
-          <circle cx="24" cy="55" r="13" fill="#4caf50"/>
-          <circle cx="56" cy="48" r="13" fill="#66bb6a"/>
-          <circle cx="40" cy="32" r="14" fill="#81c784"/>
-          <!-- Flower -->
-          <circle cx="40" cy="18" r="6" fill="#ffee58"/>
-          <circle cx="40" cy="10" r="4" fill="#fdd835"/>
-        </g>
-      </svg>
+    <!-- TIMER (Advanced) -->
+    <div class="flex-row" style="margin-bottom: 6px;">
+      <button id="timerBtn" title="Timer"
+        style="width: 100%; padding: 8px; font-weight: 600; font-size: 12px; border-radius: 6px;"
+        class="action-btn secondary">
+        <span class="ms" style="font-size:14px;">timer</span>Timer
+      </button>
     </div>
-    <p id="plantStatus" style="font-size: 12px; color: var(--text-dim);">Healthy &amp; Growing</p>
-  </div>
 
-  <!-- AMBIENT SOUND (hidden by master switch) -->
-  <div class="card hidden" id="soundCard" style="padding: 12px 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span><span class="ms">music_note</span>Ambient Noise</span>
-      <select id="ambientSelect" style="width: auto; padding: 4px 8px; font-size: 12px; background: var(--secondary-bg); color: var(--text-main); border: 1px solid var(--glass-border); border-radius: 4px;">
-        <option value="none">None</option>
-        <option value="lofi">Lo-Fi</option>
-        <option value="rain">Rain</option>
-        <option value="cafe">Cafe</option>
-      </select>
+    <!-- FOCUS MODE TOGGLE -->
+    <div class="card" id="focusModeCard" style="padding: 8px 14px; margin-bottom: 6px; font-size: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span><span class="ms" style="font-size: 14px;">block</span>Focus Mode</span>
+        <label style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0;">
+          <input type="checkbox" id="focusModeToggle" style="opacity: 0; width: 0; height: 0;">
+          <span id="focusToggleTrack"
+            style="position: absolute; cursor: pointer; inset: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; transition: all 0.2s;"></span>
+          <span id="focusToggleThumb"
+            style="position: absolute; content: ''; height: 14px; width: 14px; left: 3px; top: 3px; background: var(--text-muted); border-radius: 50%; transition: all 0.2s;"></span>
+        </label>
+      </div>
     </div>
-  </div>
 
-  <!-- HYDRATION -->
-  <div class="card" id="hydrationCard" style="display: flex; justify-content: space-between; align-items: center;">
-    <div>
-      <h3><span class="ms">water_drop</span>Hydration</h3>
-      <p id="waterText" style="font-size: 14px; color: var(--text-dim);">0 glasses today</p>
+    <!-- AMBIENT SOUND (hidden by master switch) -->
+    <div class="card hidden" id="soundCard" style="padding: 8px 14px; margin-bottom: 6px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 12px;"><span class="ms" style="font-size: 14px;">music_note</span>Ambient</span>
+        <select id="ambientSelect"
+          style="width: auto; padding: 3px 6px; font-size: 11px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 4px;">
+          <option value="none">none</option>
+          <option value="ambient/lofi">lofi</option>
+          <option value="ambient/rain">rain</option>
+          <option value="ambient/cafe">cafe</option>
+        </select>
+      </div>
     </div>
-    <button id="addWaterBtn" style="width: auto; padding: 10px 14px; flex-shrink: 0; background: var(--secondary-bg); color: var(--accent-color); border: 1px solid var(--accent-color);">
-        <span class="ms">add</span>
-    </button>
-  </div>
 
-  <!-- FOCUS STATUS -->
-  <div class="card" id="focusStatusCard" style="padding: 12px 20px; font-size: 13px;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span><span class="ms">block</span>Site Restriction</span>
-      <span id="focusStatus" class="stat-value" style="font-size: 14px;">Disabled</span>
+    <!-- CONTROLS -->
+    <div class="flex-row" style="gap: 6px;">
+      <button id="optionsBtn" class="action-btn secondary" title="Settings"
+        style="flex: 1; padding: 8px 6px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px;">
+        <span class="ms" style="font-size:14px;">settings</span>Settings
+      </button>
+      <button id="statsBtn" class="action-btn secondary" title="Analytics"
+        style="flex: 1; padding: 8px 6px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px;">
+        <span class="ms" style="font-size:14px;">bar_chart</span>Analytics
+      </button>
+    </div>
+
+    <!-- FOOTER BRANDING (single line) -->
+    <div
+      style="font-size: 9px; color: var(--text-muted); opacity: 0.5; text-align: center; margin-top: 8px; line-height: 1.5; display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap;">
+      <span style="font-weight: 600;">Powered by <a href="https://degird.com/products#extensions" target="_blank"
+          style="color: var(--brand-lime); text-decoration: none;">Degird</a></span>
+      <span style="opacity: 0.4;">|</span>
+      <span>
+        <a href="https://chromewebstore.google.com/detail/deepcycle/kclcldpjhdjdabblaljlfibkdjelclnh" target="_blank"
+          style="color: inherit; text-decoration: underline;">Review Us</a>
+        <span style="margin: 0 2px;">·</span>
+        <a href="https://chromewebstore.google.com/search/degird" target="_blank"
+          style="color: inherit; text-decoration: underline;">More Tools</a>
+      </span>
     </div>
   </div>
-
-  <!-- CONTROLS -->
-  <div class="flex-row">
-    <button id="pauseBtn" style="width: 100%; padding: 13px; background: var(--accent-color); color: var(--primary-bg); font-weight: 700; font-size: 14px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); border: none;">
-      <span id="pauseBtnText">Pause</span>
-    </button>
-  </div>
-  <div class="flex-row" style="margin-top: 8px; gap: 8px;">
-    <button id="optionsBtn" class="secondary" title="Settings" style="flex: 1; padding: 11px 8px; display: flex; align-items: center; justify-content: center; gap: 5px;">
-      <span class="ms" style="font-size:16px;">settings</span>Settings
-    </button>
-    <button id="statsBtn" class="secondary" title="Stats" style="flex: 1; padding: 11px 8px; display: flex; align-items: center; justify-content: center; gap: 5px;">
-      <span class="ms" style="font-size:16px;">bar_chart</span>Stats
-    </button>
-  </div>
-</div>
-<script src="popup.js"></script>
+  <script src="popup.js"></script>
 </body>
+
 </html>
