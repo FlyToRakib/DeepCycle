@@ -18,7 +18,13 @@ let pomodoroCycleCount = 0;
 let isLongBreak = false;
 let streakCount = 0;
 let waterIntake = 0;
-let blocklist = [];
+
+const DEFAULT_DOMAINS = [
+  "facebook.com", "youtube.com", "instagram.com", "twitter.com", "x.com", "tiktok.com",
+  "reddit.com", "snapchat.com", "linkedin.com"
+];
+let blocklist = [...DEFAULT_DOMAINS];
+
 let focusModeEnabled = false;
 let sessionActive = false; // Manual start tracking
 
@@ -66,7 +72,8 @@ chrome.storage.sync.get(
     }
     if (data.streakCount) streakCount = data.streakCount;
     if (data.waterIntake) waterIntake = data.waterIntake;
-    if (data.blocklist) blocklist = data.blocklist;
+    if (data.blocklist && data.blocklist.length > 0) blocklist = data.blocklist;
+    else blocklist = [...DEFAULT_DOMAINS];
     if (data.focusModeEnabled !== undefined) focusModeEnabled = data.focusModeEnabled;
     if (data.pausedRemainingMs) pausedRemainingMs = data.pausedRemainingMs;
     if (data.focusExcludeDays) focusExcludeDays = data.focusExcludeDays;
@@ -219,11 +226,10 @@ async function updateFocusModeRules() {
     if (filter.endsWith("/")) filter = filter.slice(0, -1);
     if (!filter) return null;
 
-    const blockedUrl = chrome.runtime.getURL(`blocked.html?site=${encodeURIComponent(filter)}`);
     return {
       id: index + 101,
       priority: 10,
-      action: { type: "redirect", redirect: { url: blockedUrl } },
+      action: { type: "redirect", redirect: { extensionPath: `/blocked.html?site=${encodeURIComponent(filter)}` } },
       condition: {
         urlFilter: `||${filter}`,
         resourceTypes: ["main_frame"]
@@ -748,7 +754,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg.action === "updateSettings") {
     chrome.storage.sync.get(["blocklist", "focusModeEnabled", "focusStartTime", "focusEndTime", "focusExcludeDays", "focusExcludeTimes", "soundSelection", "strictMode", "ambientNoise", "soundsEnabled"], data => {
-      blocklist = data.blocklist || [];
+      if (data.blocklist && data.blocklist.length > 0) blocklist = data.blocklist;
+      else blocklist = [...DEFAULT_DOMAINS];
       focusModeEnabled = data.focusModeEnabled || false;
       focusStartTime = data.focusStartTime || "09:00";
       focusEndTime = data.focusEndTime || "18:00";
