@@ -3,6 +3,18 @@
 DeepCycle CHANGELOG (formerly Eyebrak)
 ======================================
 
+v2.1.0 - "Stability & Visual Polish Update" (2026-04-17)
+--------------------------------------------------------
+🚀 NEW FEATURES & IMPROVEMENTS:
+- NEW: Focus Mode Protection metrics added to the Analytics Dashboard (Blocked Today, All Time, Unique Sites, list of recently blocked sites).
+- FEATURE: Global Queue Alerts configured to be enabled by default upon installation.
+- IMPROVEMENT: Updated 'circyle' animation loader in Pomodoro and micro-breaks to use the signature 'brand-lime' color.
+- IMPROVEMENT: Improved dynamic Beep Alerts logic — replaced unreliable alarm-based triggers with precise memory-based intervals for Pomodoro, Health Breaks, and Custom Reminders.
+- IMPROVEMENT: "Zombie" interval cleanup — all active beep intervals immediately reference the latest sound selection without stale overlaps or browser restarts.
+- IMPROVEMENT: DeepCycle Health Reminder Overhaul — ensuring robust, reliable, and immediate delivery of both individual and Global Queue alerts.
+- REMOVED: Muslim Salat Reminders feature has been phased out.
+- REMOVED: Smart Idle Detection and virtual plant decay have been removed.
+
 v2.0 - "The Ultimate Wellness Overhaul" (2026-03-12)
 ----------------------------------------------------
 Major Release: The extension has been completely rebranded from Eyebrak to DeepCycle, bringing a brand new multi-sensory approach to digital wellness, gamification, and advanced productivity enforcement.

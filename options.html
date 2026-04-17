@@ -188,6 +188,8 @@
     <!-- POMODORO FOCUS -->
     <div class="card">
       <h3><span class="ms">timer</span>Pomodoro Focus</h3>
+      <p class="guide-note">You can set 3-way alerts: Overlay, Notification, and Continuous Beep.</p>
+
       <div style="display: flex; gap: 10px; margin-bottom: 12px; margin-top: 12px;">
         <div style="flex: 1;">
           <label>Work Duration (min)</label>
@@ -210,11 +212,17 @@
         </div>
       </div>
 
-      <div class="toggle-row" style="margin-top: 6px;">
-        <label for="pomodoroBeepEnabled">Enable Beep on Break</label>
-        <input type="checkbox" id="pomodoroBeepEnabled" style="width: auto; margin-top: 0;">
+      <label style="margin-top: 12px; margin-bottom:6px;">Alert Delivery</label>
+      <div
+        style="display: flex; gap: 12px; align-items: center; background: var(--surface); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);">
+        <label style="margin:0; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"
+            id="pomoOverlay" style="margin:0; width:auto;" checked> Overlay</label>
+        <label style="margin:0; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"
+            id="pomoNotification" style="margin:0; width:auto;" checked> Notification</label>
+        <label style="margin:0; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"
+            id="pomoBeep" style="margin:0; width:auto;"> Beep</label>
       </div>
-      <div id="pomodoroBeepCard">
+      <div id="pomodoroBeepCard" class="hidden">
         <label>Beeps per minute</label>
         <input type="number" id="pomodoroBeepInterval" min="1" max="60">
       </div>
@@ -223,10 +231,62 @@
     <!-- HEALTH REMINDER -->
     <div class="card">
       <h3><span class="ms">self_improvement</span>Health Reminder</h3>
-      <p class="guide-note">3-way alert: Overlay, Notification, and Continuous Beep.</p>
+      <p class="guide-note">You can set 3-way alerts: Overlay, Notification, and Continuous Beep.</p>
+
+      <label style="margin-top: 12px; margin-bottom:6px;">Alert Delivery</label>
+      <div
+        style="display: flex; gap: 12px; align-items: center; background: var(--surface); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);">
+        <label style="margin:0; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"
+            id="healthOverlay" style="margin:0; width:auto;" checked> Overlay</label>
+        <label style="margin:0; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"
+            id="healthNotification" style="margin:0; width:auto;" checked> Notification</label>
+        <label style="margin:0; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"
+            id="healthBeep" style="margin:0; width:auto;" checked> Beep</label>
+      </div>
+      <div id="healthBreakBeepCard" class="hidden">
+        <label>Beeps per minute</label>
+        <input type="number" id="healthBreakBeepInterval" min="1" max="60" value="60">
+      </div>
+
+      <div class="section-box" style="border-color: var(--brand-lime);">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h4 style="margin:0;">Global Queue Alerts</h4>
+          <input type="checkbox" id="globalQueueEnabled" style="width: auto; margin-top: 0;" checked>
+        </div>
+        <p class="guide-note" style="margin-bottom:8px;">Sequentially rotating list of health tips.</p>
+
+        <div style="display:flex; gap:6px; margin-bottom:8px;">
+          <input type="number" id="globalQueueInterval" placeholder="Interval (min)"
+            title="Global interval between tips" min="1" max="1440" style="flex:1;">
+          <input type="number" id="globalQueueDuration" placeholder="Duration (sec)" title="Length to display" min="5"
+            max="300" style="flex:1;" value="20">
+        </div>
+
+        <div style="display:flex; gap:6px; margin-bottom:8px;">
+          <input type="text" id="globalQueueCustomText" placeholder="Add custom tip..." style="flex:1; margin:0;">
+          <button id="addGlobalQueueTipBtn" class="action-btn btn-sm" style="margin:0;">Add</button>
+        </div>
+
+        <div style="margin-bottom:8px;">
+          <label style="margin:0 0 4px 0;">Available Tips</label>
+          <div style="display:flex; gap:6px;">
+            <select id="availableTipsDropdown" style="flex:1; margin:0;"
+              title="Select a tip to add to the queue"></select>
+            <button id="addSelectedTipBtn" class="action-btn btn-sm" style="margin:0;">Add to Queue</button>
+          </div>
+        </div>
+        <div>
+          <label style="margin:0 0 4px 0;">Active Queue</label>
+          <div id="activeQueueList"
+            style="background:var(--surface); border:1px solid var(--brand-lime); border-radius:4px; height:120px; overflow-y:auto; font-size:12px; padding:4px;">
+          </div>
+        </div>
+        <button id="resetGlobalQueueBtn" class="action-btn btn-sm" style="width:100%; margin-top:8px;">Reset to Latest
+          5</button>
+      </div>
 
       <div class="section-box">
-        <h4>Create Health Break</h4>
+        <h4>Individual Alerts</h4>
         <input type="text" id="healthBreakText" placeholder="e.g. Look 20 feet away"
           style="width: 100%; margin-bottom: 6px;">
         <div style="display:flex; gap:6px;">
@@ -236,19 +296,12 @@
             title="Length of the physical break (sec)" min="5" max="300" style="flex:1;">
         </div>
         <div style="display: flex; gap: 6px; margin-top:8px;">
-          <button id="addHealthBreakBtn" class="action-btn btn-sm" style="flex: 1;">Add Health Break</button>
+          <button id="addHealthBreakBtn" class="action-btn btn-sm" style="flex: 1;">Add Health Alert</button>
           <button id="resetHealthBreaksBtn" class="action-btn btn-sm" style="flex: 1;">Reset Defaults</button>
         </div>
       </div>
 
-      <div class="toggle-row" style="margin-top: 12px;">
-        <label for="healthBreakBeepEnabled">Enable Beep on Break</label>
-        <input type="checkbox" id="healthBreakBeepEnabled" style="width: auto; margin-top: 0;">
-      </div>
-      <div id="healthBreakBeepCard" class="hidden">
-        <label>Beeps per minute</label>
-        <input type="number" id="healthBreakBeepInterval" min="1" max="60" value="60">
-      </div>
+
 
       <div id="healthBreaksList" style="margin-top: 10px;"></div>
     </div>
@@ -256,6 +309,17 @@
     <!-- CUSTOM REMINDER (directly under Health Breaks) -->
     <div class="card">
       <h3><span class="ms">notifications</span>Custom Reminder</h3>
+      <p class="guide-note">You can set 3-way alerts: Overlay, Notification, and Continuous Beep.</p>
+
+      <div
+        style="display: flex; gap: 12px; align-items: center; background: var(--surface); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; margin-top: 12px;">
+        <label style="margin:0; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"
+            id="customOverlay" style="margin:0; width:auto;"> Overlay</label>
+        <label style="margin:0; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"
+            id="customNotification" style="margin:0; width:auto;" checked> Notification</label>
+        <label style="margin:0; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"
+            id="customBeep" style="margin:0; width:auto;"> Beep</label>
+      </div>
 
       <div
         style="margin-bottom: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);">
@@ -301,7 +365,8 @@
           <option value="alert/gong">gong</option>
           <option value="alert/digital">digital</option>
         </select>
-        <button id="previewAlertBtn" class="action-btn secondary" style="padding: 10px; border-radius: var(--radius-md);" title="Preview">
+        <button id="previewAlertBtn" class="action-btn secondary"
+          style="padding: 10px; border-radius: var(--radius-md);" title="Preview">
           <span class="ms" style="margin: 0;">play_arrow</span>
         </button>
       </div>
@@ -316,7 +381,8 @@
           <option value="ambient/rain">rain</option>
           <option value="ambient/cafe">cafe</option>
         </select>
-        <button id="previewAmbientBtn" class="action-btn secondary" style="padding: 10px; border-radius: var(--radius-md);" title="Preview">
+        <button id="previewAmbientBtn" class="action-btn secondary"
+          style="padding: 10px; border-radius: var(--radius-md);" title="Preview">
           <span class="ms" style="margin: 0;">play_arrow</span>
         </button>
       </div>
@@ -326,10 +392,11 @@
       <div style="display: flex; gap: 8px;">
         <select id="continuousBeepSoundSelection"
           style="flex: 1; padding: 10px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-md);">
-          <option value="beep/beep">beep</option>
+          <option value="beep/beep1">beep</option>
           <option value="beep/beep2">beep2</option>
         </select>
-        <button id="previewBeepBtn" class="action-btn secondary" style="padding: 10px; border-radius: var(--radius-md);" title="Preview">
+        <button id="previewBeepBtn" class="action-btn secondary" style="padding: 10px; border-radius: var(--radius-md);"
+          title="Preview">
           <span class="ms" style="margin: 0;">play_arrow</span>
         </button>
       </div>
@@ -429,6 +496,17 @@
     <!-- HYDRATION -->
     <div class="card">
       <h3><span class="ms">water_drop</span>Hydration</h3>
+      <p class="guide-note">You can set 3-way alerts: Overlay, Notification, and Continuous Beep.</p>
+
+      <div
+        style="display: flex; gap: 12px; align-items: center; background: var(--surface); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; margin-top: 12px;">
+        <label style="margin:0; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"
+            id="hydrationOverlay" style="margin:0; width:auto;"> Overlay</label>
+        <label style="margin:0; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"
+            id="hydrationNotification" style="margin:0; width:auto;" checked> Notification</label>
+        <label style="margin:0; display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"
+            id="hydrationBeep" style="margin:0; width:auto;"> Beep</label>
+      </div>
 
       <label>Daily Water Goal (glasses)</label>
       <input type="number" id="waterGoal" min="1" max="20" placeholder="e.g. 10">
@@ -441,18 +519,37 @@
     <!-- KEYBOARD SHORTCUT -->
     <div class="card">
       <h3><span class="ms">keyboard</span>Keyboard Shortcut</h3>
-      <p class="guide-note" style="margin-bottom: 8px;">To customize your shortcut, go to chrome://extensions/shortcuts, find DeepCycle, and set your preferred key combination.</p>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 6px;">
+      <p class="guide-note" style="margin-bottom: 8px;">To customize your shortcut, go to chrome://extensions/shortcuts,
+        find DeepCycle, and set your preferred key combination.</p>
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 6px;">
         <span style="font-size: 13px;">Open DeepCycle:</span>
-        <span style="font-size: 13px; font-weight: 600; padding: 4px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-family: monospace;">Alt + Shift + D</span>
+        <span
+          style="font-size: 13px; font-weight: 600; padding: 4px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-family: monospace;">Alt
+          + Shift + D</span>
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <span style="font-size: 13px;">Start-Pomodoro timer:</span>
-        <span style="font-size: 13px; font-weight: 600; padding: 4px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-family: monospace;">Alt + Shift + S</span>
+        <span
+          style="font-size: 13px; font-weight: 600; padding: 4px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-family: monospace;">Alt
+          + Shift + S</span>
       </div>
       <div style="margin-top: 12px; text-align: right;">
         <a href="chrome://extensions/shortcuts" target="_blank"
           style="font-size: 12px; color: var(--brand-lime); text-decoration: none; font-weight: 500;">Customize →</a>
+      </div>
+    </div>
+
+    <!-- BEHAVIOR SETTINGS -->
+    <div class="card">
+      <h3><span class="ms">settings</span>Behavior</h3>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 10px;">
+        <div style="flex: 1; padding-right: 15px;">
+          <h4 style="margin: 0; font-size: 13px;">Show missed alerts while the browser was closed</h4>
+          <p class="guide-note" style="margin: 4px 0 0;">When enabled, any alerts that expired while the browser was
+            closed will trigger immediately upon opening. When disabled, expired alerts are skipped quietly.</p>
+        </div>
+        <input type="checkbox" id="showMissedAlerts" style="width: auto; margin-top: 2px;">
       </div>
     </div>
 

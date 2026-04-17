@@ -122,6 +122,7 @@ function startTimer() {
   if (isRunning) {
     // Treat as pause
     clearInterval(intervalId);
+    if (beepIntervalId) clearInterval(beepIntervalId);
     isRunning = false;
     startBtn.textContent = "Resume";
     return;
@@ -166,9 +167,13 @@ function startTimer() {
   startBtn.textContent = "Pause";
 
   // Start optional beep loop
+  if (beepIntervalId) clearInterval(beepIntervalId);
   if (timerBeepToggle && timerBeepToggle.checked) {
     beepIntervalId = setInterval(() => {
-      chrome.runtime.sendMessage({ action: "playStandAloneSound", sound: "beep/beep" }).catch(() => {});
+      chrome.storage.sync.get(["continuousBeepSoundSelection"], data => {
+        const sound = data.continuousBeepSoundSelection || "beep/beep1";
+        chrome.runtime.sendMessage({ action: "playStandAloneSound", sound: sound }).catch(() => {});
+      });
     }, 5000); // beep every 5s
   }
 }

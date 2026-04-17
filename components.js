@@ -7,7 +7,7 @@ const DC_PAGES = {
 };
 
 const DC_LINKS = {
-  review: { label: "Review Us", url: "https://chromewebstore.google.com/detail/deepcycle/kclcldpjhdjdabblaljlfibkdjelclnh" },
+  review: { label: "Review Us", url: "https://chromewebstore.google.com/detail/deepcycle/kclcldpjhdjdabblaljlfibkdjelclnh/reviews" },
   tools: { label: "More Tools", url: "https://chromewebstore.google.com/search/degird" },
   products: { label: "Degird Products", url: "https://degird.com/products#extensions" },
 };

@@ -6,12 +6,21 @@ let pomodoroBreak = 5;
 let longBreakCycles = 4;
 let longBreakDuration = 10;
 let pomodoroBeepInterval = 10;
-let pomodoroBeepEnabled = false;
-let healthBreakBeepEnabled = true;
-let healthBreakBeepInterval = 60;
-let continuousBeepSoundSelection = "beep/beep";
+let continuousBeepSoundSelection = "beep/beep1";
+
+let pomoAlerts = { overlay: true, notification: true, beep: false };
+let healthAlerts = { overlay: true, notification: true, beep: true };
+let customAlerts = { overlay: false, notification: true, beep: false };
+let hydrationAlerts = { overlay: false, notification: true, beep: false };
+
+let globalQueueEnabled = true;
+let globalQueueInterval = 20;
+let globalQueueDuration = 20;
+let activeGlobalQueue = [];
+let globalQueueIndex = 0;
 
 let activeHealthBeep = null;
+let activePomodoroBeep = null;
 
 let isWorkPhase = true;
 let pomodoroCycleCount = 0;
@@ -34,6 +43,7 @@ let soundSelection = "alert/chime";
 let ambientNoise = "none";
 let strictMode = false;
 let soundsEnabled = true;
+let showMissedAlerts = false;
 
 let focusStartTime = "09:00";
 let focusEndTime = "17:00";
@@ -44,8 +54,11 @@ let tips = [];
 let pausedRemainingMs = null;
 
 // Core Initialization
+let settingsLoadedResolve;
+const settingsLoadedPromise = new Promise(resolve => { settingsLoadedResolve = resolve; });
+
 chrome.storage.sync.get(
-  ["mode", "enabled", "pomodoroWork", "pomodoroBreak", "longBreakCycles", "longBreakDuration", "pomodoroBeepEnabled", "pomodoroBeepInterval", "streakCount", "pausedRemainingMs", "waterIntake", "lastWaterReset", "blocklist", "focusModeEnabled", "focusStartTime", "focusEndTime", "focusExcludeDays", "focusExcludeTimes", "totalReminders", "breaksTaken", "soundsEnabled", "ambientNoise", "strictMode", "soundSelection", "plantHealth", "sessionActive"],
+  ["mode", "enabled", "pomodoroWork", "pomodoroBreak", "longBreakCycles", "longBreakDuration", "pomodoroBeepInterval", "streakCount", "pausedRemainingMs", "waterIntake", "lastWaterReset", "blocklist", "focusModeEnabled", "focusStartTime", "focusEndTime", "focusExcludeDays", "focusExcludeTimes", "totalReminders", "breaksTaken", "soundsEnabled", "showMissedAlerts", "ambientNoise", "strictMode", "soundSelection", "plantHealth", "sessionActive", "pomoAlerts", "healthAlerts", "customAlerts", "hydrationAlerts", "globalQueueEnabled", "globalQueueInterval", "globalQueueDuration", "activeGlobalQueue", "pomodoroBeepEnabled", "healthBreakBeepEnabled"],
   data => {
     if (data.mode) reminderMode = data.mode;
     if (data.enabled !== undefined) notificationsEnabled = data.enabled;
@@ -53,21 +66,20 @@ chrome.storage.sync.get(
     if (data.pomodoroBreak) pomodoroBreak = data.pomodoroBreak;
     if (data.longBreakCycles) longBreakCycles = data.longBreakCycles;
     if (data.longBreakDuration) longBreakDuration = data.longBreakDuration;
-    if (data.pomodoroBeepEnabled !== undefined) pomodoroBeepEnabled = !!data.pomodoroBeepEnabled;
     if (data.pomodoroBeepInterval) pomodoroBeepInterval = data.pomodoroBeepInterval;
-    if (data.healthBreakBeepEnabled !== undefined) {
-      healthBreakBeepEnabled = !!data.healthBreakBeepEnabled;
-    } else {
-      healthBreakBeepEnabled = true;
-    }
-    if (data.healthBreakBeepInterval) {
-      healthBreakBeepInterval = data.healthBreakBeepInterval;
-    } else {
-      healthBreakBeepInterval = 60;
-    }
+
+    pomoAlerts = data.pomoAlerts || { overlay: true, notification: true, beep: !!data.pomodoroBeepEnabled };
+    healthAlerts = data.healthAlerts || { overlay: true, notification: true, beep: (data.healthBreakBeepEnabled !== undefined ? !!data.healthBreakBeepEnabled : true) };
+    customAlerts = data.customAlerts || { overlay: false, notification: true, beep: false };
+    hydrationAlerts = data.hydrationAlerts || { overlay: false, notification: true, beep: false };
+
+    if (data.globalQueueEnabled !== undefined) globalQueueEnabled = data.globalQueueEnabled;
+    if (data.globalQueueInterval) globalQueueInterval = data.globalQueueInterval;
+    if (data.globalQueueDuration) globalQueueDuration = data.globalQueueDuration;
+    if (data.activeGlobalQueue) activeGlobalQueue = data.activeGlobalQueue;
     if (data.continuousBeepSoundSelection) {
       let b = data.continuousBeepSoundSelection;
-      if (["beep", "chime", "gong", "digital"].includes(b)) b = "beep/beep";
+      if (["beep", "beep/beep", "chime", "gong", "digital"].includes(b)) b = "beep/beep1";
       continuousBeepSoundSelection = b;
     }
     if (data.streakCount) streakCount = data.streakCount;
@@ -108,6 +120,7 @@ chrome.storage.sync.get(
     }
     if (data.strictMode !== undefined) strictMode = data.strictMode;
     if (data.soundsEnabled !== undefined) soundsEnabled = data.soundsEnabled;
+    if (data.showMissedAlerts !== undefined) showMissedAlerts = data.showMissedAlerts;
     if (data.focusStartTime) focusStartTime = data.focusStartTime;
     if (data.focusEndTime) focusEndTime = data.focusEndTime;
 
@@ -116,7 +129,7 @@ chrome.storage.sync.get(
 
     chrome.alarms.create("microBreak", { periodInMinutes: 20 });
     chrome.alarms.create("focusModeCheck", { periodInMinutes: 1 });
-    syncDynamicAlarms();
+    syncDynamicAlarms(true);
 
     if (data.totalReminders === undefined) chrome.storage.sync.set({ totalReminders: 0 });
     if (data.breaksTaken === undefined) chrome.storage.sync.set({ breaksTaken: 0 });
@@ -149,6 +162,7 @@ chrome.storage.sync.get(
     }
 
     updateFocusModeRules();
+    settingsLoadedResolve();
   }
 );
 
@@ -244,28 +258,43 @@ async function updateFocusModeRules() {
 }
 
 // Dynamic Alarms Sync (Hydration, Custom, Health Breaks)
-async function syncDynamicAlarms() {
+async function syncDynamicAlarms(isStartup = false) {
   if (activeHealthBeep) { clearInterval(activeHealthBeep); activeHealthBeep = null; }
-  chrome.storage.sync.get(["hydrationInterval", "customAlarms", "healthBreaks"], async data => {
+  chrome.storage.sync.get(["hydrationInterval", "customAlarms", "healthBreaks", "globalQueueEnabled", "globalQueueInterval", "activeGlobalQueue"], async data => {
+    if (data.activeGlobalQueue) activeGlobalQueue = data.activeGlobalQueue;
+    
+    const alarms = await chrome.alarms.getAll();
+    const activeNames = new Set();
+
     // 1. Dynamic Hydration
     if (data.hydrationInterval && data.hydrationInterval > 0) {
-      chrome.alarms.create("dynamicHydration", { periodInMinutes: data.hydrationInterval });
+      if (!isStartup || !alarms.some(a => a.name === "dynamicHydration")) {
+        chrome.alarms.create("dynamicHydration", { periodInMinutes: data.hydrationInterval });
+      }
     } else {
       chrome.alarms.clear("dynamicHydration");
     }
 
-    // Clear old custom & health alarms
-    const alarms = await chrome.alarms.getAll();
-    for (let a of alarms) {
-      if (a.name.startsWith("custom_") || a.name.startsWith("healthBreak_")) {
-        chrome.alarms.clear(a.name);
+    // Global Queue
+    if (data.globalQueueEnabled !== false && data.activeGlobalQueue && data.activeGlobalQueue.length > 0) {
+      const newInterval = Math.max(1, data.globalQueueInterval || 20);
+      if (!isStartup || !alarms.some(a => a.name === "globalQueue")) {
+        chrome.alarms.create("globalQueue", { 
+          delayInMinutes: newInterval,
+          periodInMinutes: newInterval 
+        });
       }
+    } else {
+      chrome.alarms.clear("globalQueue");
     }
 
     // 2. Custom Reminders
     const customAlarms = data.customAlarms || [];
     customAlarms.forEach(alarm => {
       const alarmName = `custom_${alarm.id}_${alarm.text}`;
+      activeNames.add(alarmName);
+      if (isStartup && alarms.some(a => a.name === alarmName)) return;
+
       if (alarm.type === "one-time") {
         const [h, m] = alarm.time.split(":").map(Number);
         const now = new Date();
@@ -279,20 +308,23 @@ async function syncDynamicAlarms() {
 
     // 3. Advanced Health Breaks
     let healthBreaks = data.healthBreaks;
-    if (!healthBreaks || healthBreaks.length === 0) {
-      const now = Date.now();
-      healthBreaks = [
-        { id: now + 1, interval: 20, durationSecs: 20, text: "Blink slowly 10 times to moisten your eyes." },
-        { id: now + 2, interval: 45, durationSecs: 30, text: "Stretch your neck and shoulders." },
-        { id: now + 3, interval: 60, durationSecs: 60, text: "Take a short walk around your room." },
-        { id: now + 4, interval: 90, durationSecs: 30, text: "Close your eyes for 30 seconds to relax." }
-      ];
+    if (!healthBreaks) {
+      healthBreaks = [];
       chrome.storage.sync.set({ healthBreaks });
     }
     healthBreaks.forEach(hb => {
       const alarmName = `healthBreak_${hb.id}_${hb.durationSecs}_${hb.text}`;
+      activeNames.add(alarmName);
+      if (isStartup && alarms.some(a => a.name === alarmName)) return;
       chrome.alarms.create(alarmName, { periodInMinutes: hb.interval });
     });
+
+    // Clear old custom & health alarms
+    for (let a of alarms) {
+      if ((a.name.startsWith("custom_") || a.name.startsWith("healthBreak_")) && !activeNames.has(a.name)) {
+        chrome.alarms.clear(a.name);
+      }
+    }
   });
 }
 
@@ -437,72 +469,119 @@ async function playSound(type) {
 }
 
 // Dynamic Secondary Alarms Logic
-chrome.alarms.onAlarm.addListener(alarm => {
+chrome.alarms.onAlarm.addListener(async alarm => {
+  await settingsLoadedPromise;
+  const isMissed = (Date.now() - alarm.scheduledTime) > 60000;
+  const skipAlert = isMissed && !showMissedAlerts;
+
   if (alarm.name.startsWith("healthBreak_")) {
+    if (skipAlert) return;
     const parts = alarm.name.split("_");
     const duration = parseInt(parts[2]);
     const text = parts.slice(3).join("_");
 
-    chrome.storage.sync.get(["healthBreakBeepEnabled", "healthBreakBeepInterval", "continuousBeepSoundSelection", "soundsEnabled", "enabled"], freshData => {
-      const beepOn = freshData.healthBreakBeepEnabled !== undefined ? !!freshData.healthBreakBeepEnabled : true;
+    chrome.storage.sync.get(["healthBreakBeepInterval", "continuousBeepSoundSelection", "soundsEnabled", "enabled"], freshData => {
       const sndOn = freshData.soundsEnabled !== false;
-      const notiOn = freshData.enabled !== false;
-      const beepSound = freshData.continuousBeepSoundSelection || "beep/beep";
+      const beepSound = freshData.continuousBeepSoundSelection || "beep/beep1";
       const beepBpm = Math.max(1, parseInt(freshData.healthBreakBeepInterval) || 60);
 
-      healthBreakBeepEnabled = beepOn;
-      healthBreakBeepInterval = beepBpm;
       continuousBeepSoundSelection = beepSound;
 
-      showNotification(`health-${Date.now()}`, `Health Break: ${text}`, false);
+      if (healthAlerts.notification) showNotification(`health-${Date.now()}`, `Health Break: ${text}`, false);
 
-      if (beepOn && sndOn && notiOn) {
+      if (healthAlerts.beep && sndOn && notificationsEnabled) {
         const beepPeriodMin = 1 / beepBpm;
         const beepEndTime = Date.now() + (duration * 1000);
-        chrome.storage.local.set({
-          healthBeepActive: true,
-          healthBeepSound: beepSound,
-          healthBeepEndTime: beepEndTime
-        }, () => {
-          chrome.alarms.clear("healthBreakBeep", () => {
-            playSpecificSound(beepSound);
-            chrome.alarms.create("healthBreakBeep", { periodInMinutes: Math.max(0.017, beepPeriodMin) });
-          });
-        });
-      } else {
+        if (activeHealthBeep) clearInterval(activeHealthBeep);
+        
+        playSpecificSound(continuousBeepSoundSelection);
+        activeHealthBeep = setInterval(() => {
+          if (Date.now() >= beepEndTime) {
+            clearInterval(activeHealthBeep);
+            activeHealthBeep = null;
+          } else {
+            playSpecificSound(continuousBeepSoundSelection);
+          }
+        }, beepPeriodMin * 60000);
+      } else if (!healthAlerts.beep && sndOn && notificationsEnabled) {
         playSound("reminder");
       }
 
+      if (healthAlerts.overlay) {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]) {
+            chrome.tabs.sendMessage(tabs[0].id, { action: "showMicroBreak", text, duration }).catch(() => {});
+          }
+        });
+      }
+    });
+  // Removed duplicate healthBreakBeep alarm logic
+  } else if (alarm.name === "globalQueue") {
+    if (skipAlert) return;
+    if (!activeGlobalQueue || activeGlobalQueue.length === 0) return;
+    
+    const idxData = await chrome.storage.local.get("globalQueueIndex");
+    let currentIndex = typeof idxData.globalQueueIndex === "number" ? idxData.globalQueueIndex : 0;
+    if (currentIndex >= activeGlobalQueue.length) currentIndex = 0;
+    
+    const text = activeGlobalQueue[currentIndex];
+    currentIndex = (currentIndex + 1) % activeGlobalQueue.length;
+    chrome.storage.local.set({ globalQueueIndex: currentIndex });
+    
+    // Global queue operates identically to Health Breaks in terms of 3-way alerts, 
+    // utilizing healthAlerts toggles since it's in the Health module.
+    if (healthAlerts.notification) showNotification(`gqueue-${Date.now()}`, text, false);
+    
+    if (healthAlerts.overlay) {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]) {
-          chrome.tabs.sendMessage(tabs[0].id, { action: "showMicroBreak", text, duration }).catch(() => {});
-        }
+        if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "showMicroBreak", text, duration: globalQueueDuration }).catch(() => {});
       });
-    });
-  } else if (alarm.name === "healthBreakBeep") {
-    chrome.storage.local.get(["healthBeepActive", "healthBeepSound", "healthBeepEndTime"], d => {
-      if (!d.healthBeepActive) {
-        chrome.alarms.clear("healthBreakBeep");
-        return;
-      }
-      if (Date.now() >= (d.healthBeepEndTime || 0)) {
-        chrome.storage.local.set({ healthBeepActive: false });
-        chrome.alarms.clear("healthBreakBeep");
-        return;
-      }
-      playSpecificSound(d.healthBeepSound || "beep/beep");
-    });
+    }
+    
+    if (healthAlerts.beep && soundsEnabled && notificationsEnabled) {
+      // Small beep setup
+      const beepPeriodMin = 1 / 60;
+      const beepEndTime = Date.now() + (globalQueueDuration * 1000);
+      
+      if (activeHealthBeep) clearInterval(activeHealthBeep);
+      
+      playSpecificSound(continuousBeepSoundSelection);
+      activeHealthBeep = setInterval(() => {
+        if (Date.now() >= beepEndTime) {
+          clearInterval(activeHealthBeep);
+          activeHealthBeep = null;
+        } else {
+          playSpecificSound(continuousBeepSoundSelection);
+        }
+      }, beepPeriodMin * 60000);
+    } else if (!healthAlerts.beep && soundsEnabled && healthAlerts.notification) {
+      playSound("reminder");
+    }
   } else if (alarm.name === "focusModeCheck") {
     updateFocusModeRules();
   } else if (alarm.name === "dynamicHydration") {
-    showNotification(`hydrate-${Date.now()}`, "Hydration Check! Time to drink some water.", false);
-    playSound("reminder");
+    if (skipAlert) return;
+    const text = "Hydration Check! Time to drink some water.";
+    if (hydrationAlerts.notification) showNotification(`hydrate-${Date.now()}`, text, false);
+    if (soundsEnabled && hydrationAlerts.notification) playSound("reminder");
+    if (hydrationAlerts.overlay) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "showMicroBreak", text, duration: 15 }).catch(() => {});
+      });
+    }
   } else if (alarm.name.startsWith("custom_")) {
     const parts = alarm.name.split("_");
     const alarmId = parseInt(parts[1]);
     const text = parts.slice(2).join("_");
-    showNotification(`custom-${Date.now()}-${alarm.name}`, `Reminder: ${text}`, false);
-    playSound("reminder");
+    if (!skipAlert) {
+      if (customAlerts.notification) showNotification(`custom-${Date.now()}-${alarm.name}`, `Reminder: ${text}`, false);
+      if (soundsEnabled && customAlerts.notification) playSound("reminder");
+      if (customAlerts.overlay) {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "showMicroBreak", text, duration: 15 }).catch(() => {});
+        });
+      }
+    }
 
     // Auto-remove one-time alerts after 30 seconds
     if (alarmId) {
@@ -521,14 +600,13 @@ chrome.alarms.onAlarm.addListener(alarm => {
 });
 
 // Alarm Handler — Pomodoro Break Logic
-chrome.alarms.onAlarm.addListener(alarm => {
-  // Beep during break
-  if (alarm.name === "breakBeep") {
-    playSpecificSound(continuousBeepSoundSelection);
-    return;
-  }
+chrome.alarms.onAlarm.addListener(async alarm => {
+  await settingsLoadedPromise;
+  // breakBeep extracted successfully
 
   if (alarm.name !== "breakReminder") return;
+  const isMissed = (Date.now() - alarm.scheduledTime) > 60000;
+  const skipAlert = isMissed && !showMissedAlerts;
 
   if (reminderMode === "pomodoro") {
     if (isWorkPhase) {
@@ -545,40 +623,50 @@ chrome.alarms.onAlarm.addListener(alarm => {
       isLongBreak = isLong;
 
       const breakMsg = isLong ? "Long break time! Amazing focus." : "Work session finished! Time for a short break.";
-      showNotification(`pomodoro-work-${Date.now()}`, breakMsg, true);
-      playSound("break_start");
+      if (!skipAlert) {
+        if (pomoAlerts.notification) showNotification(`pomodoro-work-${Date.now()}`, breakMsg, true);
+        playSound("break_start");
+      }
       setAlarm(breakLen);
       isWorkPhase = false;
 
       // Show countdown overlay on active tab
-      const breakDurationSecs = breakLen * 60;
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]) {
-          chrome.tabs.sendMessage(tabs[0].id, {
-            action: "showPomodoroBreak",
-            text: breakMsg,
-            duration: breakDurationSecs,
-            isLong
-          }).catch(() => {});
-        }
-      });
+      if (!skipAlert && pomoAlerts.overlay) {
+        const breakDurationSecs = breakLen * 60;
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+              action: "showPomodoroBreak",
+              text: breakMsg,
+              duration: breakDurationSecs,
+              isLong
+            }).catch(() => {});
+          }
+        });
+      }
 
       // Continuous Beep Setup
-      if (pomodoroBeepEnabled && pomodoroBeepInterval > 0) {
-        chrome.alarms.create("breakBeep", { periodInMinutes: (1 / pomodoroBeepInterval) });
+      if (!skipAlert && pomoAlerts.beep && pomodoroBeepInterval > 0 && soundsEnabled !== false && notificationsEnabled) {
+        if (activePomodoroBeep) clearInterval(activePomodoroBeep);
+        playSpecificSound(continuousBeepSoundSelection);
+        activePomodoroBeep = setInterval(() => {
+          playSpecificSound(continuousBeepSoundSelection);
+        }, (1 / pomodoroBeepInterval) * 60000);
       }
 
       // Boost plant on work completion
       plantHealth = Math.min(100, plantHealth + 5);
       chrome.storage.sync.set({ plantHealth });
     } else {
-      chrome.alarms.clear("breakBeep");
+      if (activePomodoroBeep) { clearInterval(activePomodoroBeep); activePomodoroBeep = null; }
 
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "hideOverlay" }).catch(() => {});
-      });
-      showNotification(`pomodoro-break-${Date.now()}`, "Break's over! Back to work.", false);
-      playSound("work_start");
+      if (!skipAlert) {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: "hideOverlay" }).catch(() => {});
+        });
+        if (pomoAlerts.notification) showNotification(`pomodoro-break-${Date.now()}`, "Break's over! Back to work.", false);
+        playSound("work_start");
+      }
 
       // Streak logic with daily reset
       const today = new Date().toLocaleDateString();
@@ -592,11 +680,13 @@ chrome.alarms.onAlarm.addListener(alarm => {
         streakCount = newStreak;
         chrome.storage.sync.set({ streakCount: newStreak, lastCompletionDate: today });
         chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-          if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, {
-            action: "showToast",
-            message: `Streak x${newStreak}! You've completed ${newStreak} session${newStreak>1?'s':''} in a row.`,
-            duration: 5000
-          }).catch(() => {});
+          if (!skipAlert && tabs[0]) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+              action: "showToast",
+              message: `Streak x${newStreak}! You've completed ${newStreak} session${newStreak>1?'s':''} in a row.`,
+              duration: 5000
+            }).catch(() => {});
+          }
         });
       });
 
@@ -635,7 +725,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     pausedRemainingMs = null;
     pomodoroCycleCount = 0;
     chrome.alarms.clear("breakReminder");
-    chrome.alarms.clear("breakBeep");
+    if (activePomodoroBeep) { clearInterval(activePomodoroBeep); activePomodoroBeep = null; }
     chrome.storage.sync.set({ sessionActive: false });
     chrome.storage.sync.remove("pausedRemainingMs");
     chrome.storage.local.remove("pendingResumeMs");
@@ -687,12 +777,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (typeof msg.pomodoroBreak === "number") pomodoroBreak = msg.pomodoroBreak;
     if (typeof msg.longBreakCycles === "number") longBreakCycles = msg.longBreakCycles;
     if (typeof msg.longBreakDuration === "number") longBreakDuration = msg.longBreakDuration;
-    if (typeof msg.pomodoroBeepEnabled === "boolean") pomodoroBeepEnabled = msg.pomodoroBeepEnabled;
-    if (typeof msg.pomodoroBeepInterval === "number") pomodoroBeepInterval = msg.pomodoroBeepInterval;
-    if (typeof msg.healthBreakBeepEnabled === "boolean") healthBreakBeepEnabled = msg.healthBreakBeepEnabled;
-    if (typeof msg.healthBreakBeepInterval === "number") healthBreakBeepInterval = msg.healthBreakBeepInterval;
-    if (typeof msg.continuousBeepSoundSelection === "string") continuousBeepSoundSelection = msg.continuousBeepSoundSelection;
-    if (typeof msg.enabled === "boolean") notificationsEnabled = msg.enabled;
+    if (msg.pomoAlerts) pomoAlerts = msg.pomoAlerts;
+    if (msg.healthAlerts) healthAlerts = msg.healthAlerts;
+    if (msg.customAlerts) customAlerts = msg.customAlerts;
+    if (msg.hydrationAlerts) hydrationAlerts = msg.hydrationAlerts;
+    if (typeof msg.globalQueueEnabled !== "undefined") globalQueueEnabled = msg.globalQueueEnabled;
+    if (msg.globalQueueInterval) globalQueueInterval = msg.globalQueueInterval;
+    if (msg.globalQueueDuration) globalQueueDuration = msg.globalQueueDuration;
+    if (msg.pomodoroBeepInterval) pomodoroBeepInterval = msg.pomodoroBeepInterval;
+    if (msg.continuousBeepSoundSelection) continuousBeepSoundSelection = msg.continuousBeepSoundSelection;
+    if (typeof msg.showMissedAlerts !== "undefined") showMissedAlerts = msg.showMissedAlerts;
 
     if (activeHealthBeep) { clearInterval(activeHealthBeep); activeHealthBeep = null; }
 
@@ -702,11 +796,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       pomodoroBreak: pomodoroBreak,
       longBreakCycles: longBreakCycles,
       longBreakDuration: longBreakDuration,
-      pomodoroBeepEnabled: pomodoroBeepEnabled,
       pomodoroBeepInterval: pomodoroBeepInterval,
-      healthBreakBeepEnabled: healthBreakBeepEnabled,
       continuousBeepSoundSelection: continuousBeepSoundSelection,
-      enabled: notificationsEnabled
+      enabled: notificationsEnabled,
+      pomoAlerts, healthAlerts, customAlerts, hydrationAlerts,
+      globalQueueEnabled, globalQueueInterval, globalQueueDuration,
+      showMissedAlerts
     }, () => {
       chrome.storage.sync.get(["pausedRemainingMs"], data => {
         if (data.pausedRemainingMs) {
@@ -761,7 +856,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       focusEndTime = data.focusEndTime || "18:00";
       focusExcludeDays = data.focusExcludeDays || [];
       focusExcludeTimes = data.focusExcludeTimes || [];
-      soundSelection = data.soundSelection || "chime";
+      let s = data.soundSelection || "alert/chime";
+      if (["chime", "gong", "digital"].includes(s)) s = "alert/" + s;
+      soundSelection = s;
       strictMode = !!data.strictMode;
       ambientNoise = data.ambientNoise || "none";
       soundsEnabled = data.soundsEnabled !== false;

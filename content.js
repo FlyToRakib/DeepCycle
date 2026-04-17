@@ -84,7 +84,7 @@ function showMicroBreakCountdown(text = "Rest your eyes.", duration = 20) {
       <div class="micro-timer">
         <svg width="120" height="120" viewBox="0 0 120 120">
           <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8" />
-          <circle id="microProgress" cx="60" cy="60" r="54" fill="none" stroke="#00e5ff" stroke-width="8"
+          <circle id="microProgress" cx="60" cy="60" r="54" fill="none" stroke="#AEED22" stroke-width="8"
             stroke-dasharray="339.29" stroke-dashoffset="0" stroke-linecap="round"
             style="transition: stroke-dashoffset 1s linear; transform: rotate(-90deg); transform-origin: center;" />
         </svg>
@@ -127,11 +127,11 @@ function showPomodoroBreakOverlay(text = "Take a break", duration = 300) {
       <div class="micro-timer">
         <svg width="120" height="120" viewBox="0 0 120 120">
           <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8" />
-          <circle id="pomoProgress" cx="60" cy="60" r="54" fill="none" stroke="#81c784" stroke-width="8"
+          <circle id="pomoProgress" cx="60" cy="60" r="54" fill="none" stroke="#AEED22" stroke-width="8"
             stroke-dasharray="339.29" stroke-dashoffset="0" stroke-linecap="round"
             style="transition: stroke-dashoffset 1s linear; transform: rotate(-90deg); transform-origin: center;" />
         </svg>
-        <div class="micro-text" id="pomoSecs" style="color: #81c784; font-size: 28px;"></div>
+        <div class="micro-text" id="pomoSecs" style="color: #AEED22; font-size: 28px;"></div>
       </div>
       <button id="pomoDismissBtn" style="margin-top: 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: background 0.2s; font-family: 'Inter', sans-serif;">Dismiss</button>
     </div>

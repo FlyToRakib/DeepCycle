@@ -18,12 +18,35 @@ const pomodoroWorkInput = document.getElementById("pomodoroWork");
 const pomodoroBreakInput = document.getElementById("pomodoroBreak");
 const longBreakCyclesInput = document.getElementById("longBreakCycles");
 const longBreakDurationInput = document.getElementById("longBreakDuration");
-const pomodoroBeepEnabledCheckbox = document.getElementById("pomodoroBeepEnabled");
+const pomoOverlay = document.getElementById("pomoOverlay");
+const pomoNotification = document.getElementById("pomoNotification");
+const pomoBeep = document.getElementById("pomoBeep");
 const pomodoroBeepIntervalInput = document.getElementById("pomodoroBeepInterval");
 const pomodoroBeepCard = document.getElementById("pomodoroBeepCard");
-const healthBreakBeepEnabledCheckbox = document.getElementById("healthBreakBeepEnabled");
+
+const healthOverlay = document.getElementById("healthOverlay");
+const healthNotification = document.getElementById("healthNotification");
+const healthBeep = document.getElementById("healthBeep");
 const healthBreakBeepCard = document.getElementById("healthBreakBeepCard");
 const healthBreakBeepIntervalInput = document.getElementById("healthBreakBeepInterval");
+
+const customOverlay = document.getElementById("customOverlay");
+const customNotification = document.getElementById("customNotification");
+const customBeep = document.getElementById("customBeep");
+
+const hydrationOverlay = document.getElementById("hydrationOverlay");
+const hydrationNotification = document.getElementById("hydrationNotification");
+const hydrationBeep = document.getElementById("hydrationBeep");
+
+const globalQueueEnabled = document.getElementById("globalQueueEnabled");
+const globalQueueInterval = document.getElementById("globalQueueInterval");
+const globalQueueDuration = document.getElementById("globalQueueDuration");
+const globalQueueCustomText = document.getElementById("globalQueueCustomText");
+const addGlobalQueueTipBtn = document.getElementById("addGlobalQueueTipBtn");
+const availableTipsDropdown = document.getElementById("availableTipsDropdown");
+const addSelectedTipBtn = document.getElementById("addSelectedTipBtn");
+const activeQueueList = document.getElementById("activeQueueList");
+const resetGlobalQueueBtn = document.getElementById("resetGlobalQueueBtn");
 const continuousBeepSoundSelect = document.getElementById("continuousBeepSoundSelection");
 const saveBtn = document.getElementById("saveBtn");
 const statusEl = document.getElementById("status");
@@ -36,6 +59,7 @@ const soundSelect = document.getElementById("soundSelection");
 const ambientSelect = document.getElementById("ambientSelect");
 const strictModeCheckbox = document.getElementById("strictMode");
 const soundsEnabledCheckbox = document.getElementById("soundsEnabled");
+const showMissedAlertsCheckbox = document.getElementById("showMissedAlerts");
 const customSoundFile = document.getElementById("customSoundFile");
 const customSoundName = document.getElementById("customSoundName");
 const customSoundCategory = document.getElementById("customSoundCategory");
@@ -355,13 +379,8 @@ function renderHealthBreaks() {
     list.innerHTML = "";
 
     let breaks = data.healthBreaks;
-    if (!breaks || breaks.length === 0) {
-      breaks = [
-        { id: Date.now() + 1, interval: 20, durationSecs: 20, text: "Blink slowly 10 times to moisten your eyes." },
-        { id: Date.now() + 2, interval: 45, durationSecs: 30, text: "Stretch your neck and shoulders." },
-        { id: Date.now() + 3, interval: 60, durationSecs: 60, text: "Take a short walk around your room." },
-        { id: Date.now() + 4, interval: 90, durationSecs: 30, text: "Close your eyes for 30 seconds to relax." }
-      ];
+    if (!breaks) {
+      breaks = [];
       chrome.storage.sync.set({ healthBreaks: breaks }, () => {
         chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => { });
         renderHealthBreaks();
@@ -413,16 +432,10 @@ if (addHealthBreakBtn) {
 
 if (resetHealthBreaksBtn) {
   resetHealthBreaksBtn.addEventListener("click", () => {
-    const defaults = [
-      { id: Date.now() + 1, interval: 20, durationSecs: 20, text: "Blink slowly 10 times to moisten your eyes." },
-      { id: Date.now() + 2, interval: 45, durationSecs: 30, text: "Stretch your neck and shoulders." },
-      { id: Date.now() + 3, interval: 60, durationSecs: 60, text: "Take a short walk around your room." },
-      { id: Date.now() + 4, interval: 90, durationSecs: 30, text: "Close your eyes for 30 seconds to relax." }
-    ];
-    chrome.storage.sync.set({ healthBreaks: defaults }, () => {
+    chrome.storage.sync.set({ healthBreaks: [] }, () => {
       renderHealthBreaks();
       chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => { });
-      alert("Health Breaks have been reset to default values.");
+      alert("Health Breaks have been cleared.");
     });
   });
 }
@@ -466,18 +479,42 @@ if (addRepeatBtn) {
 }
 
 // ─── Load Settings ────────────────────────────────────────────────────────────
-chrome.storage.sync.get(["mode", "pomodoroWork", "pomodoroBreak", "longBreakCycles", "longBreakDuration", "pomodoroBeepEnabled", "pomodoroBeepInterval", "healthBreakBeepEnabled", "continuousBeepSoundSelection", "focusModeEnabled", "focusStartTime", "focusEndTime", "waterGoal", "hydrationInterval", "soundSelection", "ambientNoise", "strictMode", "soundsEnabled", "focusExcludeDays"], data => {
+chrome.storage.sync.get(["mode", "pomodoroWork", "pomodoroBreak", "longBreakCycles", "longBreakDuration", "pomodoroBeepInterval", "healthBreakBeepInterval", "continuousBeepSoundSelection", "focusModeEnabled", "focusStartTime", "focusEndTime", "waterGoal", "hydrationInterval", "soundSelection", "ambientNoise", "strictMode", "soundsEnabled", "showMissedAlerts", "focusExcludeDays", "pomoAlerts", "healthAlerts", "customAlerts", "hydrationAlerts", "globalQueueEnabled", "globalQueueInterval", "globalQueueDuration", "activeGlobalQueue", "pomodoroBeepEnabled", "healthBreakBeepEnabled"], data => {
   if (pomodoroWorkInput) pomodoroWorkInput.value = data.pomodoroWork || 50;
   if (pomodoroBreakInput) pomodoroBreakInput.value = data.pomodoroBreak || 5;
   if (longBreakCyclesInput) longBreakCyclesInput.value = data.longBreakCycles || 4;
   if (longBreakDurationInput) longBreakDurationInput.value = data.longBreakDuration || 10;
-  if (pomodoroBeepEnabledCheckbox) pomodoroBeepEnabledCheckbox.checked = !!data.pomodoroBeepEnabled;
   if (pomodoroBeepIntervalInput) pomodoroBeepIntervalInput.value = data.pomodoroBeepInterval || 10;
-  if (healthBreakBeepEnabledCheckbox) healthBreakBeepEnabledCheckbox.checked = (data.healthBreakBeepEnabled !== undefined) ? !!data.healthBreakBeepEnabled : true;
   if (healthBreakBeepIntervalInput) healthBreakBeepIntervalInput.value = data.healthBreakBeepInterval || 60;
-  let loadedBeep = data.continuousBeepSoundSelection || "beep/beep";
-  if (loadedBeep === "beep") loadedBeep = "beep/beep";
-  if (["chime", "gong", "digital"].includes(loadedBeep)) loadedBeep = "beep/beep";
+  
+  // Alert settings map (with basic fallbacks for old settings)
+  let pA = data.pomoAlerts || { overlay: true, notification: true, beep: !!data.pomodoroBeepEnabled };
+  let hA = data.healthAlerts || { overlay: true, notification: true, beep: (data.healthBreakBeepEnabled !== undefined ? !!data.healthBreakBeepEnabled : true) };
+  let cA = data.customAlerts || { overlay: false, notification: true, beep: false };
+  let hydA = data.hydrationAlerts || { overlay: false, notification: true, beep: false };
+
+  if (pomoOverlay) pomoOverlay.checked = pA.overlay;
+  if (pomoNotification) pomoNotification.checked = pA.notification;
+  if (pomoBeep) pomoBeep.checked = pA.beep;
+
+  if (healthOverlay) healthOverlay.checked = hA.overlay;
+  if (healthNotification) healthNotification.checked = hA.notification;
+  if (healthBeep) healthBeep.checked = hA.beep;
+
+  if (customOverlay) customOverlay.checked = cA.overlay;
+  if (customNotification) customNotification.checked = cA.notification;
+  if (customBeep) customBeep.checked = cA.beep;
+
+  if (hydrationOverlay) hydrationOverlay.checked = hydA.overlay;
+  if (hydrationNotification) hydrationNotification.checked = hydA.notification;
+  if (hydrationBeep) hydrationBeep.checked = hydA.beep;
+  
+  if (globalQueueEnabled) globalQueueEnabled.checked = data.globalQueueEnabled !== false;
+  if (globalQueueInterval) globalQueueInterval.value = data.globalQueueInterval || 20;
+  if (globalQueueDuration) globalQueueDuration.value = data.globalQueueDuration || 20;
+  let loadedBeep = data.continuousBeepSoundSelection || "beep/beep1";
+  if (loadedBeep === "beep" || loadedBeep === "beep/beep") loadedBeep = "beep/beep1";
+  if (["chime", "gong", "digital"].includes(loadedBeep)) loadedBeep = "beep/beep1";
   if (continuousBeepSoundSelect) continuousBeepSoundSelect.value = loadedBeep;
   if (focusModeCheckbox) focusModeCheckbox.checked = !!data.focusModeEnabled;
   if (focusStartTimeInput) focusStartTimeInput.value = data.focusStartTime || "09:00";
@@ -498,6 +535,7 @@ chrome.storage.sync.get(["mode", "pomodoroWork", "pomodoroBreak", "longBreakCycl
   if (ambientSelect) ambientSelect.value = loadedAmbient;
   if (strictModeCheckbox) strictModeCheckbox.checked = !!data.strictMode;
   if (soundsEnabledCheckbox) soundsEnabledCheckbox.checked = data.soundsEnabled !== false;
+  if (showMissedAlertsCheckbox) showMissedAlertsCheckbox.checked = !!data.showMissedAlerts;
 
   // Exclude days
   const excludeDays = data.focusExcludeDays || [];
@@ -515,8 +553,8 @@ chrome.storage.sync.get(["mode", "pomodoroWork", "pomodoroBreak", "longBreakCycl
 });
 
 function togglePomodoroBeep() {
-  if (!pomodoroBeepEnabledCheckbox || !pomodoroBeepCard) return;
-  if (pomodoroBeepEnabledCheckbox.checked) {
+  if (!pomoBeep || !pomodoroBeepCard) return;
+  if (pomoBeep.checked) {
     pomodoroBeepCard.classList.remove("hidden");
   } else {
     pomodoroBeepCard.classList.add("hidden");
@@ -524,19 +562,19 @@ function togglePomodoroBeep() {
 }
 
 function toggleHealthBreakBeep() {
-  if (!healthBreakBeepEnabledCheckbox || !healthBreakBeepCard) return;
-  if (healthBreakBeepEnabledCheckbox.checked) {
+  if (!healthBeep || !healthBreakBeepCard) return;
+  if (healthBeep.checked) {
     healthBreakBeepCard.classList.remove("hidden");
   } else {
     healthBreakBeepCard.classList.add("hidden");
   }
 }
 
-if (pomodoroBeepEnabledCheckbox) {
-  pomodoroBeepEnabledCheckbox.addEventListener("change", togglePomodoroBeep);
+if (pomoBeep) {
+  pomoBeep.addEventListener("change", togglePomodoroBeep);
 }
-if (healthBreakBeepEnabledCheckbox) {
-  healthBreakBeepEnabledCheckbox.addEventListener("change", toggleHealthBreakBeep);
+if (healthBeep) {
+  healthBeep.addEventListener("change", toggleHealthBreakBeep);
 }
 
 // ─── Save ────────────────────────────────────────────────────────────────────
@@ -565,13 +603,37 @@ function saveSettings() {
   const pomodoroBreak = pomodoroBreakInput ? Math.max(1, parseInt(pomodoroBreakInput.value) || 5) : 5;
   const longBreakCycles = longBreakCyclesInput ? Math.max(1, parseInt(longBreakCyclesInput.value) || 4) : 4;
   const longBreakDuration = longBreakDurationInput ? Math.max(1, parseInt(longBreakDurationInput.value) || 10) : 10;
-  const pomodoroBeepEnabled = pomodoroBeepEnabledCheckbox ? !!pomodoroBeepEnabledCheckbox.checked : false;
   const pomodoroBeepInterval = pomodoroBeepIntervalInput ? Math.max(1, parseInt(pomodoroBeepIntervalInput.value) || 10) : 10;
-  const healthBreakBeepEnabled = healthBreakBeepEnabledCheckbox ? !!healthBreakBeepEnabledCheckbox.checked : true;
-  const continuousBeepSoundSelection = continuousBeepSoundSelect ? continuousBeepSoundSelect.value : "beep/beep";
+  const healthBreakBeepInterval = healthBreakBeepIntervalInput ? (parseInt(healthBreakBeepIntervalInput.value) || 60) : 60;
+  const continuousBeepSoundSelection = continuousBeepSoundSelect ? continuousBeepSoundSelect.value : "beep/beep1";
   const focusModeEnabled = focusModeCheckbox ? !!focusModeCheckbox.checked : false;
   const focusStartTime = focusStartTimeInput ? focusStartTimeInput.value : "09:00";
   const focusEndTime = focusEndTimeInput ? focusEndTimeInput.value : "18:00";
+
+  const pomoAlerts = {
+    overlay: pomoOverlay ? !!pomoOverlay.checked : false,
+    notification: pomoNotification ? !!pomoNotification.checked : true,
+    beep: pomoBeep ? !!pomoBeep.checked : false
+  };
+  const healthAlerts = {
+    overlay: healthOverlay ? !!healthOverlay.checked : true,
+    notification: healthNotification ? !!healthNotification.checked : true,
+    beep: healthBeep ? !!healthBeep.checked : true
+  };
+  const customAlerts = {
+    overlay: customOverlay ? !!customOverlay.checked : false,
+    notification: customNotification ? !!customNotification.checked : true,
+    beep: customBeep ? !!customBeep.checked : false
+  };
+  const hydrationAlerts = {
+    overlay: hydrationOverlay ? !!hydrationOverlay.checked : false,
+    notification: hydrationNotification ? !!hydrationNotification.checked : true,
+    beep: hydrationBeep ? !!hydrationBeep.checked : false
+  };
+  
+  const gQueueEnabled = globalQueueEnabled ? !!globalQueueEnabled.checked : false;
+  const gQueueInterval = globalQueueInterval ? Math.max(1, parseInt(globalQueueInterval.value) || 20) : 20;
+  const gQueueDuration = globalQueueDuration ? Math.max(5, parseInt(globalQueueDuration.value) || 20) : 20;
 
   // Exclude days
   const focusExcludeDays = [];
@@ -589,22 +651,26 @@ function saveSettings() {
     const ambientNoise = ambientSelect ? ambientSelect.value : "none";
     const strictMode = strictModeCheckbox ? !!strictModeCheckbox.checked : false;
     const soundsEnabled = soundsEnabledCheckbox ? !!soundsEnabledCheckbox.checked : true;
+    const showMissedAlerts = showMissedAlertsCheckbox ? !!showMissedAlertsCheckbox.checked : false;
 
     chrome.storage.sync.set({
       mode, pomodoroWork, pomodoroBreak, longBreakCycles, longBreakDuration,
-      pomodoroBeepEnabled, pomodoroBeepInterval,
-      healthBreakBeepEnabled, healthBreakBeepInterval: healthBreakBeepIntervalInput ? (parseInt(healthBreakBeepIntervalInput.value) || 60) : 60,
+      pomodoroBeepInterval, healthBreakBeepInterval,
       continuousBeepSoundSelection,
       focusModeEnabled, focusStartTime, focusEndTime, focusExcludeDays, blocklist,
       waterGoal, hydrationInterval, soundSelection, ambientNoise,
-      strictMode, soundsEnabled
+      strictMode, soundsEnabled, showMissedAlerts,
+      pomoAlerts, healthAlerts, customAlerts, hydrationAlerts,
+      globalQueueEnabled: gQueueEnabled, globalQueueInterval: gQueueInterval, globalQueueDuration: gQueueDuration
     });
 
     chrome.runtime.sendMessage({
       action: "updateAlarm", mode, pomodoroWork, pomodoroBreak, longBreakCycles, longBreakDuration,
-      pomodoroBeepEnabled, pomodoroBeepInterval, healthBreakBeepEnabled,
-      healthBreakBeepInterval: healthBreakBeepIntervalInput ? (parseInt(healthBreakBeepIntervalInput.value) || 60) : 60,
-      continuousBeepSoundSelection
+      pomodoroBeepInterval, healthBreakBeepInterval,
+      continuousBeepSoundSelection,
+      pomoAlerts, healthAlerts, customAlerts, hydrationAlerts,
+      globalQueueEnabled: gQueueEnabled, globalQueueInterval: gQueueInterval, globalQueueDuration: gQueueDuration,
+      showMissedAlerts
     }, resp => {
       chrome.runtime.sendMessage({ action: "updateSettings" }).catch(() => { });
       chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => { });
@@ -699,8 +765,8 @@ function loadFolderSounds(folderName, selectId) {
                     if (mappedVal === "gong") mappedVal = "alert/gong";
                     if (mappedVal === "digital") mappedVal = "alert/digital";
                   } else if (selectId === "continuousBeepSoundSelection") {
-                    mappedVal = data.continuousBeepSoundSelection || "beep/beep";
-                    if (["beep", "chime", "gong", "digital"].includes(mappedVal)) mappedVal = "beep/beep";
+                    mappedVal = data.continuousBeepSoundSelection || "beep/beep1";
+                    if (["beep", "beep/beep", "chime", "gong", "digital"].includes(mappedVal)) mappedVal = "beep/beep1";
                   } else if (selectId === "ambientSelect") {
                     mappedVal = data.ambientNoise || "none";
                     if (mappedVal === "lofi") mappedVal = "ambient/lofi";
@@ -725,6 +791,127 @@ function loadFolderSounds(folderName, selectId) {
     });
   }
 }
+
+// ─── Global Queue Logic ────────────────────────────────────────────────────────
+
+let allTips = [];
+
+function initGlobalQueue() {
+  fetch(chrome.runtime.getURL("tips.json"))
+    .then(r => r.json())
+    .then(data => {
+      allTips = data;
+      renderGlobalQueueLists();
+    }).catch(() => {});
+}
+
+function renderGlobalQueueLists() {
+  chrome.storage.sync.get(["activeGlobalQueue"], val => {
+    let activeQueue = val.activeGlobalQueue;
+    if (!activeQueue) {
+      activeQueue = allTips.slice(0, 5);
+      chrome.storage.sync.set({ activeGlobalQueue: activeQueue });
+    }
+    
+    const availableTips = allTips.filter(t => !activeQueue.includes(t));
+    
+    if (availableTipsDropdown) {
+      availableTipsDropdown.innerHTML = "";
+      availableTips.forEach(tip => {
+        const opt = document.createElement("option");
+        opt.value = tip;
+        opt.textContent = sanitize(tip).substring(0, 70) + (tip.length > 70 ? "..." : "");
+        availableTipsDropdown.appendChild(opt);
+      });
+    }
+
+    if (activeQueueList) {
+      activeQueueList.innerHTML = "";
+      activeQueue.forEach((tip, idx) => {
+        const d = document.createElement("div");
+        d.style.cssText = "display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding:4px 0;";
+        d.innerHTML = `<span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:4px;" title="${sanitize(tip)}">${sanitize(tip)}</span>
+                       <div style="display:flex; gap:4px;">
+                         ${idx > 0 ? `<button class="action-btn btn-sm" style="width:auto; padding:2px 6px;" title="Move Up">↑</button>` : `<div style="width:23px;"></div>`}
+                         ${idx < activeQueue.length - 1 ? `<button class="action-btn btn-sm" style="width:auto; padding:2px 6px;" title="Move Down">↓</button>` : `<div style="width:23px;"></div>`}
+                         <button class="action-btn btn-sm" style="width:auto; padding:2px 6px; background:rgba(239,83,80,0.15); color:#ef9a9a; border:1px solid rgba(239,83,80,0.3);" title="Remove">✕</button>
+                       </div>`;
+                       
+        const btns = d.querySelectorAll("button");
+        if (idx > 0) btns[0].addEventListener("click", () => moveQueueItem(idx, -1));
+        if (idx < activeQueue.length - 1) btns[idx > 0 ? 1 : 0].addEventListener("click", () => moveQueueItem(idx, 1));
+        btns[btns.length - 1].addEventListener("click", () => {
+          activeQueue.splice(idx, 1);
+          chrome.storage.sync.set({ activeGlobalQueue: activeQueue }, () => {
+            renderGlobalQueueLists();
+            chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
+          });
+        });
+        
+        activeQueueList.appendChild(d);
+      });
+    }
+  });
+}
+
+function moveQueueItem(idx, dir) {
+  chrome.storage.sync.get(["activeGlobalQueue"], val => {
+    let q = val.activeGlobalQueue || [];
+    if (idx < 0 || idx >= q.length || idx + dir < 0 || idx + dir >= q.length) return;
+    const temp = q[idx];
+    q[idx] = q[idx + dir];
+    q[idx + dir] = temp;
+    chrome.storage.sync.set({ activeGlobalQueue: q }, () => {
+      renderGlobalQueueLists();
+      chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
+    });
+  });
+}
+
+if (addSelectedTipBtn) {
+  addSelectedTipBtn.addEventListener("click", () => {
+    const txt = availableTipsDropdown ? availableTipsDropdown.value : "";
+    if (!txt) return;
+    chrome.storage.sync.get(["activeGlobalQueue"], val => {
+      let activeQueue = val.activeGlobalQueue || [];
+      if (!activeQueue.includes(txt)) {
+        activeQueue.push(txt);
+        chrome.storage.sync.set({ activeGlobalQueue: activeQueue }, () => {
+          renderGlobalQueueLists();
+          chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
+        });
+      }
+    });
+  });
+}
+
+if (addGlobalQueueTipBtn) {
+  addGlobalQueueTipBtn.addEventListener("click", () => {
+    const txt = globalQueueCustomText ? globalQueueCustomText.value.trim() : "";
+    if (!txt) return;
+    chrome.storage.sync.get(["activeGlobalQueue"], val => {
+      let activeQueue = val.activeGlobalQueue || [];
+      activeQueue.push(txt);
+      chrome.storage.sync.set({ activeGlobalQueue: activeQueue }, () => {
+        if (globalQueueCustomText) globalQueueCustomText.value = "";
+        renderGlobalQueueLists();
+        chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
+      });
+    });
+  });
+}
+
+if (resetGlobalQueueBtn) {
+  resetGlobalQueueBtn.addEventListener("click", () => {
+    const top5 = allTips.slice(0, 5);
+    chrome.storage.sync.set({ activeGlobalQueue: top5 }, () => {
+      renderGlobalQueueLists();
+      chrome.runtime.sendMessage({ action: "syncDynamicAlarms" }).catch(() => {});
+    });
+  });
+}
+
+initGlobalQueue();
 
 // Call dynamic loaders
 loadFolderSounds("alert", "soundSelection");

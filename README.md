@@ -10,12 +10,49 @@ Through gamification, precise timers, and custom micro-breaks, DeepCycle makes s
 
 ## 🚀 Features
 
-- 🌱 **Virtual Desk Plant Gamification** - Your plant grows as you maintain focus and decays if you go idle.
-- 🧘 **Advanced Health Breaks** - Customizable physical routines (eye rests, stretching) with beautiful countdown overlays.
-- 🔔 **Multi-Sensory Alerts** - Custom sound library, desktop notifications, and smooth glassmorphism browser overlays.
-- 🎯 **Deep Focus Mode** - Built-in site blocker to stop distractions during your Pomodoro "Work" phases.
-- 🕌 **Muslim Salat Reminders** - Automatic geolocation-based prayer reminders.
-- 💧 **Hydration Tracker & Analytics** - Track water intake and monitor your daily activity heatmap.  
+### ⏱️ Pomodoro Focus Timer
+- **Work & Break Duration customization**
+- **Long break cycles & duration logic**
+- **Multi-sensory alerts** (Overlay, Notification, Continuous Beep)
+- **Real-time animated SVG overlays** with Glassmorphism for focus phases
+- **Dynamic alarm synchronization** (settings take immediate effect)
+
+### 🧘 Advanced Health Breaks
+- **Individual Alerts**: Add custom alerts with tailored intervals, durations, and text (e.g., "Look 20 feet away").
+- **Global Queue Alerts**: Sequentially rotating list of health tips enabled by default.
+- **Micro-break countdown overlays**: Beautiful visual guides for your rest embedded directly in the browser.
+
+### 🔔 Custom Reminders System
+- **One-Time Alerts** for specific times.
+- **Repeating Alerts** with strict minute intervals.
+- Integrated **Multi-sensory delivery** options.
+
+### 🎵 Custom Sound Library
+- **Alert Sounds**: Built-in choices (Chime, Gong, Digital).
+- **Ambient Sounds**: Lo-fi, Rain, Cafe for deep focus.
+- **Continuous Beep Sounds** for strict interval enforcement.
+- **File Upload**: Upload your own custom `.mp3` or `.wav` sounds and assign them to categories.
+
+### 🎯 Deep Focus Mode (Site Blocker)
+- **Strict Domain Blocking** during your Pomodoro "Work" phases via a dedicated block page.
+- **Active Hours Scheduling** (Start and End Times).
+- **Time/Day Exclusions**: Exclude rest days or set specific time windows (like lunch break) to momentarily allow access.
+
+### 💧 Hydration Tracker
+- **Daily Water Goal setting** with popup interactive logging.
+- **Interval reminders** to stay hydrated.
+
+### 🌱 Gamification & Analytics
+- **Virtual Desk Plant Gamification**: Plant visually grows through 4 stages as you complete focus sessions.
+- **Focus Mode Protection**: Track daily blocked sites, total blocks, unique sites protected, and view your blocked domain list.
+- **Streak System**: Daily reset ('🔥 Level Up!' notification after completed Pomodoro cycles).
+- **Activity Heatmap**: View active minutes per hour natively in the stats page.
+- **Wellness Score** tracking your overall consistency.
+
+### ⚙️ Behavior & System Settings
+- **Missed Alert Catch-Up**: Trigger missed notifications upon reopening the browser.
+- **Strict Mode Lock**: Require a password to alter your settings, locking you into your focus configuration.
+- **Keyboard Shortcuts** support.
 
 ---
 

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "DeepCycle",
-  "version": "3.1",
+  "version": "2.1.0",
   "description": "Advanced wellness assistant. Focus Mode, Pomodoro Timer, Health Breaks, Ambient Sounds & Gamification.",
   "permissions": [
     "storage",
