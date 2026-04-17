@@ -2,7 +2,7 @@
 
 # 👁️ DeepCycle – A Smart Chrome Extension for Eye Protection & Screen Awareness
 
-**DeepCycle** (formerly Eyebrak) is a powerful, multi-sensory Chrome extension designed to help users achieve deep work, reduce eye strain, and build healthy digital habits. 
+**DeepCycle**  is a powerful, multi-sensory Chrome extension designed to help users achieve deep work, reduce eye strain, and build healthy digital habits. 
 
 Through gamification, precise timers, and custom micro-breaks, DeepCycle makes staying focused and healthy an engaging experience.
 
