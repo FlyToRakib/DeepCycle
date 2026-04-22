@@ -19,7 +19,7 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "scripts/background.js"
   },
   "content_scripts": [
     {
@@ -27,19 +27,19 @@
         "<all_urls>"
       ],
       "js": [
-        "content.js"
+        "scripts/content.js"
       ],
       "css": [
-        "content.css"
+        "scripts/content.css"
       ]
     }
   ],
   "web_accessible_resources": [
     {
       "resources": [
-        "blocked.html",
-        "blocked.js",
-        "offscreen.html",
+        "pages/blocked.html",
+        "pages/blocked.js",
+        "scripts/offscreen.html",
         "sounds/*"
       ],
       "matches": [
@@ -62,14 +62,14 @@
     }
   },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
   },
-  "options_page": "options.html",
+  "options_page": "options/options.html",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",

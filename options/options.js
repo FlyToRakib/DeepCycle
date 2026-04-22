@@ -797,7 +797,7 @@ function loadFolderSounds(folderName, selectId) {
 let allTips = [];
 
 function initGlobalQueue() {
-  fetch(chrome.runtime.getURL("tips.json"))
+  fetch(chrome.runtime.getURL("lib/tips.json"))
     .then(r => r.json())
     .then(data => {
       allTips = data;

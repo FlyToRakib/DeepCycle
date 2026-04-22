@@ -167,7 +167,7 @@ chrome.storage.sync.get(
 );
 
 // load tips file
-fetch(chrome.runtime.getURL("tips.json"))
+fetch(chrome.runtime.getURL("lib/tips.json"))
   .then(r => r.json())
   .then(d => tips = d)
   .catch(_ => tips = ["Take a short break!"]);
@@ -243,7 +243,7 @@ async function updateFocusModeRules() {
     return {
       id: index + 101,
       priority: 10,
-      action: { type: "redirect", redirect: { extensionPath: `/blocked.html?site=${encodeURIComponent(filter)}` } },
+      action: { type: "redirect", redirect: { extensionPath: `/pages/blocked.html?site=${encodeURIComponent(filter)}` } },
       condition: {
         urlFilter: `||${filter}`,
         resourceTypes: ["main_frame"]
@@ -447,7 +447,7 @@ async function setupOffscreenDocument(path) {
 }
 
 async function playSpecificSound(soundName) {
-  await setupOffscreenDocument("offscreen.html");
+  await setupOffscreenDocument("scripts/offscreen.html");
   if (soundName.startsWith("custom:")) {
     const rawName = soundName.replace("custom:", "");
     chrome.storage.local.get(["customSounds"], cdata => {
@@ -911,7 +911,7 @@ async function handleAmbientNoise() {
   const shouldPlay = soundsEnabled && isRunning && ambientNoise !== "none";
   const action = shouldPlay ? "startAmbient" : "stopAmbient";
 
-  await setupOffscreenDocument("offscreen.html");
+  await setupOffscreenDocument("scripts/offscreen.html");
   if (shouldPlay && ambientNoise.startsWith("custom:")) {
     const rawName = ambientNoise.replace("custom:", "");
     chrome.storage.local.get(["customSounds"], cdata => {

@@ -336,11 +336,11 @@ function openOrReuseTab(pageFile, fallbackAction) {
   });
 }
 
-if (optionsBtn) optionsBtn.addEventListener("click", () => openOrReuseTab("options.html", () => chrome.runtime.openOptionsPage()));
+if (optionsBtn) optionsBtn.addEventListener("click", () => openOrReuseTab("options/options.html", () => chrome.runtime.openOptionsPage()));
 
-if (statsBtn) statsBtn.addEventListener("click", () => openOrReuseTab("stats.html"));
+if (statsBtn) statsBtn.addEventListener("click", () => openOrReuseTab("pages/stats.html"));
 
-if (timerBtn) timerBtn.addEventListener("click", () => openOrReuseTab("timer.html", () => chrome.tabs.create({ url: chrome.runtime.getURL("timer.html") })));
+if (timerBtn) timerBtn.addEventListener("click", () => openOrReuseTab("pages/timer.html", () => chrome.tabs.create({ url: chrome.runtime.getURL("pages/timer.html") })));
 
 // Init
 loadFolderSounds("ambient", "ambientSelect");
