@@ -1,11 +1,5 @@
 // stats.js - v3.1 Modern Analytics with Global Header/Footer
-// Render global header & footer
-const headerEl = document.getElementById("dcHeader");
-const footerEl = document.getElementById("dcFooter");
-if (headerEl) {
-  headerEl.innerHTML = dcRenderHeader("analytics", "Track your focus sessions, breaks taken, hydration, and see how Focus Mode protects you from distractions.");
-}
-if (footerEl) footerEl.innerHTML = dcRenderFooter();
+// Initialize global navigation
 dcInitNav();
 
 const totalEl = document.getElementById("total");

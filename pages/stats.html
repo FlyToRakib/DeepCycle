@@ -76,9 +76,19 @@
 </head>
 
 <body>
+  <!-- GLOBAL HEADER -->
+  <header class="dc-header">
+    <div class="dc-header-bar">
+      <span class="dc-header-brand">DeepCycle</span>
+      <nav class="dc-header-nav">
+        <a class="dc-nav-link" data-page="settings">SETTINGS</a>
+        <a class="dc-nav-link active" data-page="analytics">ANALYTICS</a>
+      </nav>
+      <span class="dc-header-powered">POWERED BY <a href="#" data-link="degirdProducts" target="_blank">DEGIRD</a></span>
+    </div>
+  </header>
   <div class="container">
-    <!-- GLOBAL HEADER -->
-    <div id="dcHeader"></div>
+    <p class="dc-header-desc">Track your focus sessions, breaks taken, hydration, and see how Focus Mode protects you from distractions.</p>
 
     <!-- OVERVIEW STATS -->
     <div class="stat-grid" style="margin-bottom: 12px;">
@@ -195,9 +205,19 @@
       <p id="plantStatus" style="font-size: 12px; color: var(--text-muted);">Healthy &amp; Growing</p>
     </div>
 
-    <!-- GLOBAL FOOTER -->
-    <div id="dcFooter"></div>
   </div>
+
+  <!-- GLOBAL FOOTER -->
+  <footer class="dc-footer">
+    <div class="dc-footer-links">
+      <a href="#" data-link="reviewUs" target="_blank">REVIEW US</a>
+      <a href="#" data-link="moreTools" target="_blank">MORE TOOLS</a>
+      <a href="#" data-link="privacy" target="_blank">PRIVACY</a>
+      <a href="#" data-link="support" target="_blank">SUPPORT</a>
+      <a href="#" data-link="userGuide" target="_blank">USER GUIDE</a>
+    </div>
+    <div class="dc-footer-brand">© <span class="dc-year"></span> DEEPCYCLE</div>
+  </footer>
   <script src="../lib/links.js"></script>
   <script src="../lib/components.js"></script>
   <script src="stats.js"></script>

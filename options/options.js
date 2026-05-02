@@ -1,4 +1,6 @@
 // options.js - v3.1 Cleaned Settings
+// Initialize global navigation
+dcInitNav();
 
 // XSS-safe text escaping for user-provided data in innerHTML
 function sanitize(str) {
@@ -93,14 +95,6 @@ const DEFAULT_DOMAINS = [
   "reddit.com", "snapchat.com", "linkedin.com"
 ];
 
-// Global header/footer
-const headerEl = document.getElementById("dcHeader");
-const footerEl = document.getElementById("dcFooter");
-if (headerEl) {
-  headerEl.innerHTML = dcRenderHeader("settings", "Configure your Pomodoro timer, health reminders, ambient sounds, Focus Mode, and more to match your workflow.");
-}
-if (footerEl) footerEl.innerHTML = dcRenderFooter();
-dcInitNav();
 
 // Shortcut link — chrome:// URLs can't be opened directly, guide user
 const shortcutLink = document.getElementById("shortcutLink");

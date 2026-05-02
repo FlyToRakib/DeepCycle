@@ -11,6 +11,7 @@ const startPauseBtnText = document.getElementById("startPauseBtnText");
 const startPauseIcon = document.getElementById("startPauseIcon");
 const resetBtn = document.getElementById("resetBtn");
 const optionsBtn = document.getElementById("optionsBtn");
+const optionsBtnHeader = document.getElementById("optionsBtnHeader");
 const statsBtn = document.getElementById("statsBtn");
 const timerBtn = document.getElementById("timerBtn");
 const timerProgress = document.getElementById("timerProgress");
@@ -337,6 +338,7 @@ function openOrReuseTab(pageFile, fallbackAction) {
 }
 
 if (optionsBtn) optionsBtn.addEventListener("click", () => openOrReuseTab("options/options.html", () => chrome.runtime.openOptionsPage()));
+if (optionsBtnHeader) optionsBtnHeader.addEventListener("click", () => openOrReuseTab("options/options.html", () => chrome.runtime.openOptionsPage()));
 
 if (statsBtn) statsBtn.addEventListener("click", () => openOrReuseTab("pages/stats.html"));
 
